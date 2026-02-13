@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>شات الأرقام 2008</title>
+<title>شات الأرقام 2010</title>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <style>
@@ -12,14 +12,15 @@
     .room-title { font-weight: bold; font-size: 15px; flex: 1; text-align: center; }
     .nav-links { text-align: left; font-size: 11px; flex: 1; line-height: 1.5; }
     .nav-links a { color: #0066cc; text-decoration: underline; display: block; cursor: pointer; }
-    .send-box { display: flex; gap: 5px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; }
+    .send-box { display: flex; gap: 5px; margin-bottom: 15px; align-items: center; }
     input[type="text"] { width: 60%; border: 1px solid #777; font-size: 13px; padding: 3px; }
     button { font-size: 11px; padding: 2px 6px; background: #e1e1e1; border: 1px solid #888; cursor: pointer; }
-    .delete-btn { background: #ffcccc; color: #900; border: 1px solid #900; } /* ستايل زر المسح */
     .chat-box { border-top: 1px solid #000; height: 400px; overflow-y: auto; padding-top: 5px; }
     .message { border-bottom: 1px solid #eee; padding: 5px 0; }
     .nick { color: #0066cc; text-decoration: underline; font-weight: bold; }
     .spacer { flex: 1; }
+    .footer-tools { margin-top: 10px; text-align: left; }
+    .delete-btn { background: #fff0f0; color: #cc0000; border: 1px solid #cc0000; font-size: 10px; padding: 3px 8px; }
 </style>
 </head>
 <body>
@@ -36,9 +37,12 @@
     <input type="text" id="messageInput" placeholder="اكتب هنا...">
     <button id="sendBtn">إرسال</button>
     <button onclick="document.getElementById('messageInput').value=''">تحديث</button>
-    <button class="delete-btn" onclick="clearChat()">مسح الشات</button>
 </div>
 <div class="chat-box" id="chatBox"></div>
+
+<div class="footer-tools">
+    <button class="delete-btn" onclick="clearChat()">× مسح المحادثة</button>
+</div>
 
 <script>
     const firebaseConfig = {
@@ -66,22 +70,18 @@
         }
     }
 
-    // وظيفة مسح الشات
     function clearChat() {
-        if (confirm("هل أنت متأكد من مسح جميع الرسائل نهائياً؟")) {
-            database.ref('messages').set(null); // يمسح كل الرسائل من Firebase
-            document.getElementById('chatBox').innerHTML = ""; // يمسح الرسائل من الشاشة
+        if (confirm("سيتم حذف جميع الرسائل من الطرفين، هل أنت متأكد؟")) {
+            database.ref('messages').set(null);
         }
     }
 
     document.getElementById('sendBtn').onclick = sendMessage;
     document.getElementById('messageInput').onkeypress = (e) => { if(e.keyCode == 13) sendMessage(); };
 
-    // مراقبة الرسائل الجديدة والمسح
     database.ref('messages').on('value', (snapshot) => {
         const chatBox = document.getElementById('chatBox');
-        chatBox.innerHTML = ""; // تصفير الشاشة قبل عرض البيانات (مهم لعملية المسح)
-        
+        chatBox.innerHTML = "";
         snapshot.forEach((childSnapshot) => {
             const data = childSnapshot.val();
             const msgDiv = document.createElement('div');
