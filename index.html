@@ -10,15 +10,12 @@
     h1 { font-size: 24px; color: #006c35; margin-bottom: 10px; }
     p { font-size: 14px; color: #555; margin-bottom: 25px; }
     
-    /* ستايل خانة الرقم السري */
     #passInput { padding: 12px; width: 80%; border: 1px solid #ccc; border-radius: 8px; text-align: center; font-size: 18px; margin-bottom: 15px; outline: none; }
     .verify-btn { background: #006c35; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-size: 16px; }
     
-    /* ستايل خيارات الشات (تكون مخفية في البداية) */
     #chatOptions { display: none; margin-top: 20px; border-top: 2px dashed #eee; padding-top: 20px; }
     .choice-btn { display: block; padding: 12px; margin: 10px 0; border: 1px solid #006c35; background: #f0fff4; color: #006c35; text-decoration: none; border-radius: 8px; font-weight: bold; }
     
-    /* ستايل صفحة المقالة الوطنية (تظهر عند الخطأ) */
     #articlePage { display: none; text-align: right; line-height: 1.6; }
 </style>
 </head>
@@ -55,11 +52,12 @@
         const articlePage = document.getElementById('articlePage');
 
         if (pass === "2010105") {
-            // إذا الرمز صح: يفتح الشات
+            // إضافة ختم الدخول في ذاكرة المتصفح
+            sessionStorage.setItem("access_granted", "true");
+            
             loginArea.style.display = "none";
             chatOptions.style.display = "block";
         } else {
-            // إذا الرمز خطأ: تظهر المقالة
             loginArea.style.display = "none";
             articlePage.style.display = "block";
             document.getElementById('contentBox').style.borderColor = "#ccc";
@@ -69,5 +67,3 @@
 
 </body>
 </html>
-
-
