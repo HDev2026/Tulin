@@ -3,78 +3,69 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>بوابة شات الأرقام</title>
+<title>نحلم ونحقق</title>
 <style>
-    /* تنسيق البوابة بطابع كلاسيكي نظيف */
-    body { 
-        font-family: 'Tahoma', 'Arial', sans-serif; 
-        background-color: #ffffff; 
-        display: flex; 
-        justify-content: center; 
-        align-items: center; 
-        height: 100vh; 
-        margin: 0; 
-        direction: rtl; 
-    }
-    .main-box { 
-        border: 2px solid #000; 
-        padding: 30px; 
-        background: #f5f5f5; 
-        box-shadow: 5px 5px 0px #888;
-        text-align: center;
-        max-width: 400px;
-        width: 90%;
-    }
-    h1 { 
-        font-size: 20px; 
-        margin-bottom: 20px; 
-        border-bottom: 2px solid #000; 
-        padding-bottom: 10px; 
-        color: #333;
-    }
-    .choice-btn { 
-        display: block; 
-        padding: 15px; 
-        margin: 15px 0; 
-        border: 1px solid #000; 
-        background: #e1e1e1; 
-        color: #000; 
-        text-decoration: none; 
-        font-weight: bold;
-        transition: 0.3s;
-    }
-    .choice-btn:hover { 
-        background: #fff; 
-        transform: scale(1.02);
-    }
-    .old-style { border-right: 5px solid #0066cc; } 
-    .new-style { border-right: 5px solid #cc0000; } 
+    body { font-family: 'Tahoma', sans-serif; background: #fdfdfd; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; direction: rtl; }
+    .main-box { border: 1px solid #006c35; padding: 40px; background: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; max-width: 450px; width: 90%; border-radius: 15px; }
+    h1 { font-size: 24px; color: #006c35; margin-bottom: 10px; }
+    p { font-size: 14px; color: #555; margin-bottom: 25px; }
     
-    .footer-text { 
-        font-size: 11px; 
-        color: #666; 
-        margin-top: 20px; 
-    }
+    /* ستايل خانة الرقم السري */
+    #passInput { padding: 12px; width: 80%; border: 1px solid #ccc; border-radius: 8px; text-align: center; font-size: 18px; margin-bottom: 15px; outline: none; }
+    .verify-btn { background: #006c35; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-size: 16px; }
+    
+    /* ستايل خيارات الشات (تكون مخفية في البداية) */
+    #chatOptions { display: none; margin-top: 20px; border-top: 2px dashed #eee; padding-top: 20px; }
+    .choice-btn { display: block; padding: 12px; margin: 10px 0; border: 1px solid #006c35; background: #f0fff4; color: #006c35; text-decoration: none; border-radius: 8px; font-weight: bold; }
+    
+    /* ستايل صفحة المقالة الوطنية (تظهر عند الخطأ) */
+    #articlePage { display: none; text-align: right; line-height: 1.6; }
 </style>
 </head>
 <body>
 
-<div class="main-box">
-    <h1>مرحباً بك في شات الأرقام</h1>
-    <p style="font-size: 13px;">يرجى اختيار واجهة الدخول المفضلة:</p>
+<div class="main-box" id="contentBox">
+    <div id="loginArea">
+        <h1>مرحباً بك</h1>
+        <p>نحلم ونحقق.. أدخل رمز العبور للمضي قدماً</p>
+        <input type="password" id="passInput" placeholder="الرمز السري">
+        <br>
+        <button class="verify-btn" onclick="checkPass()">تحقق</button>
+    </div>
 
-    <a href="classic.html" class="choice-btn old-style">
-        [ دخول - ستايل نوكيا 2008 ]
-    </a>
+    <div id="chatOptions">
+        <p>أهلاً بك مجدداً.. اختر وجهتك:</p>
+        <a href="classic.html" class="choice-btn">العودة للماضي (2008)</a>
+        <a href="modern.html" class="choice-btn">رؤية المستقبل (2026)</a>
+    </div>
 
-    <a href="modern.html" class="choice-btn new-style">
-        [ دخول - الستايل المطور 2026 ]
-    </a>
-
-    <div class="footer-text">
-        جميع الحقوق محفوظة - 2026
+    <div id="articlePage">
+        <h2 style="color: #006c35; text-align:center;">نحلم ونحقق</h2>
+        <p>إنها ليست مجرد عبارة، بل هي قصة وطن طموح وشعب لا يعرف المستحيل. نحن في هذا الوطن العظيم نسير بخطى ثابتة نحو مستقبل مشرق، متمسكين بجذورنا وأصالتنا، ومواكبين لكل جديد في عالم التكنولوجيا والإبداع.</p>
+        <p>رؤيتنا هي بوصلتنا، وعزيمتنا هي وقودنا.. لنبني غداً أجمل لنا وللأجيال القادمة.</p>
+        <button class="verify-btn" onclick="location.reload()" style="width:100%">العودة للمحاولة</button>
     </div>
 </div>
+
+<script>
+    function checkPass() {
+        const pass = document.getElementById('passInput').value;
+        const loginArea = document.getElementById('loginArea');
+        const chatOptions = document.getElementById('chatOptions');
+        const articlePage = document.getElementById('articlePage');
+
+        if (pass === "2010105") {
+            // إذا الرمز صح: يفتح الشات
+            loginArea.style.display = "none";
+            chatOptions.style.display = "block";
+        } else {
+            // إذا الرمز خطأ: تظهر المقالة
+            loginArea.style.display = "none";
+            articlePage.style.display = "block";
+            document.getElementById('contentBox').style.borderColor = "#ccc";
+        }
+    }
+</script>
 
 </body>
 </html>
