@@ -3,48 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>شات الذكريات 2008</title>
+<title>شات الأرقام</title>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <style>
-    body { font-family: Tahoma, sans-serif; background: #e1e1e1; direction: rtl; margin: 0; padding: 10px; }
-    .header { background: #4a4a4a; color: white; padding: 5px 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #000; }
-    .exit-btn { color: white; text-decoration: none; font-size: 11px; background: #c00; padding: 2px 8px; border: 1px solid #fff; cursor: pointer; font-weight: bold; }
-    
-    #chatBox { background: white; border: 1px solid #000; height: 350px; overflow-y: scroll; padding: 10px; margin: 10px 0; font-size: 13px; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1); }
-    .msg-item { margin-bottom: 5px; border-bottom: 1px dotted #ccc; padding-bottom: 3px; word-wrap: break-word; }
-    .user { color: #0000ff; font-weight: bold; margin-left: 5px; }
-    
-    .controls { background: #d1d1d1; padding: 10px; border: 1px solid #000; }
-    input { width: 65%; padding: 5px; border: 1px solid #888; font-size: 14px; }
-    button { padding: 5px 10px; cursor: pointer; background: #f0f0f0; border: 1px solid #000; font-family: Tahoma; font-size: 12px; }
-    button:active { background: #ddd; }
-    
-    .old-nav { margin-top: 10px; display: flex; gap: 5px; }
+    /* الستايل الأصلي كما تحبه بدون أي تعديل */
+    body { font-family: Tahoma, sans-serif; background-color: #f0f0f0; direction: rtl; }
+    .header { background-color: #808080; color: white; padding: 5px; display: flex; justify-content: space-between; }
+    .exit-btn { color: white; text-decoration: none; cursor: pointer; }
+    #chatBox { border: 1px solid #000; height: 300px; overflow-y: scroll; background-color: white; padding: 5px; margin-top: 10px; }
+    .controls { margin-top: 10px; border: 1px solid #808080; padding: 5px; background-color: #d3d3d3; }
+    button { cursor: pointer; }
 </style>
 </head>
 <body>
 
 <div class="header">
     <span>[ متصل الآن ]</span>
-    <a href="index.html" class="exit-btn">خروج X</a>
+    <a href="index.html" class="exit-btn">[ خروج X ]</a>
 </div>
 
 <div id="chatBox"></div>
 
 <div class="controls">
-    <input type="text" id="msgInput" placeholder="اكتب هنا..." onkeypress="if(event.key==='Enter') send()">
+    <input type="text" id="msgInput" placeholder="اكتب هنا...">
     <button onclick="send()">إرسال</button>
-    
-    <div class="old-nav">
-        <button onclick="console.log('Refresh View Only')">[ تحديث ]</button>
-        <button onclick="alert('شات الأرقام - نسخة كلاسيك 2008')">[ حول ]</button>
-    </div>
+    <br><br>
+    <button onclick="console.log('Refresh View')">[ تحديث ]</button>
+    <button onclick="alert('شات الأرقام 2008')">[ حول ]</button>
 </div>
 
 <script>
-    // بياناتك الأصلية التي زودتني بها
     const firebaseConfig = {
         apiKey: "AIzaSyDQb40w_XQE3F9AIJ16OtO9sDt6kIDCw9g",
         authDomain: "myoldchat-40cbe.firebaseapp.com",
@@ -56,15 +46,12 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // نظام الذاكرة لعدم طلب الاسم بشكل مزعج
+    // نظام الذاكرة ليبقى الاسم ثابتاً ولا يطلب التحديث
     let nick = localStorage.getItem("user_nick");
     if (!nick) {
-        nick = prompt("أهلاً بك.. أدخل اسمك المستعار:");
-        if (nick && nick.trim() !== "") {
-            localStorage.setItem("user_nick", nick);
-        } else {
-            nick = "زائر_" + Math.floor(Math.random() * 1000);
-        }
+        nick = prompt("أدخل النيك نيم:");
+        if (nick) localStorage.setItem("user_nick", nick);
+        else nick = "زائر";
     }
 
     function send() {
@@ -72,18 +59,16 @@
         if(txt.value.trim() !== "") {
             db.ref('messages').push().set({
                 user: nick,
-                text: txt.value,
-                timestamp: Date.now()
+                text: txt.value
             });
             txt.value = "";
         }
     }
 
-    // عرض الرسائل
-    db.ref('messages').limitToLast(30).on('child_added', (snap) => {
+    db.ref('messages').limitToLast(20).on('child_added', (snap) => {
         const m = snap.val();
         const box = document.getElementById('chatBox');
-        box.innerHTML += `<div class="msg-item"><span class="user">${m.user}:</span> ${m.text}</div>`;
+        box.innerHTML += `<div><b>[${m.user}]</b>: ${m.text}</div>`;
         box.scrollTop = box.scrollHeight;
     });
 </script>
