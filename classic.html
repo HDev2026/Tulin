@@ -7,23 +7,71 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <style>
-    body { font-family: Tahoma, Arial, sans-serif; background: #fff; margin: 10px; direction: rtl; }
-    .header-container { display: flex; justify-content: space-between; align-items: center; background: #f5f5f5; padding: 10px; border-bottom: 1px solid #000; margin-bottom: 15px; }
-    .room-title { font-weight: bold; font-size: 15px; flex: 1; text-align: center; }
+    /* نفس ألوان ملف index.html بالضبط لضمان التناسق */
+    :root {
+        --bg-body: #121212;
+        --bg-box: #1e1e1e;
+        --text-h1: #00a852; 
+        --text-p: #bbb;
+        --border-main: #006c35;
+        --input-bg: #2d2d2d;
+        --input-text: #fff;
+        --input-border: #444;
+        --msg-border: #2d2d2d;
+    }
+
+    [data-theme="light"] {
+        --bg-body: #fdfdfd;
+        --bg-box: #f5f5f5;
+        --text-h1: #0066cc;
+        --text-p: #000;
+        --border-main: #000;
+        --input-bg: #fff;
+        --input-text: #000;
+        --input-border: #777;
+        --msg-border: #eee;
+    }
+
+    body { font-family: Tahoma, Arial, sans-serif; background: var(--bg-body); color: var(--text-p); margin: 10px; direction: rtl; transition: 0.3s; }
+    
+    .header-container { 
+        display: flex; justify-content: space-between; align-items: center; 
+        background: var(--bg-box); padding: 10px; border-bottom: 1px solid var(--border-main); 
+        margin-bottom: 15px; position: relative;
+    }
+    
+    /* زر التبديل بنفس أسلوب index */
+    .theme-btn { cursor: pointer; background: none; border: none; font-size: 18px; outline: none; margin-left: 10px; }
+
+    .room-title { font-weight: bold; font-size: 15px; flex: 1; text-align: center; color: var(--text-h1); }
+    
     .nav-links { text-align: left; font-size: 11px; flex: 1; line-height: 1.5; }
-    .nav-links a, .nav-links span { color: #0066cc; text-decoration: underline; display: block; cursor: pointer; }
+    .nav-links a, .nav-links span { color: var(--text-h1); text-decoration: underline; display: block; cursor: pointer; }
+    
     .send-box { display: flex; gap: 5px; margin-bottom: 15px; align-items: center; }
-    input[type="text"] { width: 60%; border: 1px solid #777; font-size: 13px; padding: 3px; }
-    button { font-size: 11px; padding: 2px 6px; background: #e1e1e1; border: 1px solid #888; cursor: pointer; }
-    .chat-box { border-top: 1px solid #000; height: 400px; overflow-y: auto; padding-top: 5px; }
-    .message { border-bottom: 1px solid #eee; padding: 5px 0; }
-    .nick { color: #0066cc; text-decoration: underline; font-weight: bold; }
+    
+    input[type="text"] { 
+        width: 60%; border: 1px solid var(--input-border); 
+        background: var(--input-bg); color: var(--input-text); 
+        font-size: 13px; padding: 5px; outline: none; 
+    }
+    
+    button { 
+        font-size: 11px; padding: 4px 8px; 
+        background: var(--input-bg); color: var(--text-p); 
+        border: 1px solid var(--input-border); cursor: pointer; 
+    }
+    
+    .chat-box { border-top: 1px solid var(--border-main); height: 400px; overflow-y: auto; padding-top: 5px; }
+    
+    .message { border-bottom: 1px solid var(--msg-border); padding: 5px 0; }
+    
+    .nick { color: var(--text-h1); text-decoration: underline; font-weight: bold; }
+    
     .spacer { flex: 1; }
 </style>
 </head>
-<body>
-
-<script>
+<body data-theme="dark"> <script>
     // --- نظام حماية المسار ---
     if (sessionStorage.getItem("access_granted") !== "true") {
         alert("تنبيه: لا يمكن الدخول المباشر، يرجى كتابة الرمز السري أولاً.");
@@ -32,6 +80,7 @@
 </script>
 
 <div class="header-container">
+    <button class="theme-btn" onclick="toggleTheme()">🌓</button>
     <div class="nav-links" style="text-align: right;">
         <span onclick="clearChat()">[مسح الشات]</span>
     </div>
@@ -52,6 +101,13 @@
 <div class="chat-box" id="chatBox"></div>
 
 <script>
+    // دالة تبديل الوضع
+    function toggleTheme() {
+        const body = document.body;
+        const currentTheme = body.getAttribute('data-theme');
+        body.setAttribute('data-theme', currentTheme === 'light' ? 'dark' : 'light');
+    }
+
     const firebaseConfig = {
         apiKey: "AIzaSyDQb40w_XQE3F9AIJ16OtO9sDt6kIDCw9g",
         authDomain: "myoldchat-40cbe.firebaseapp.com",
