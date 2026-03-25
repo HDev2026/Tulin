@@ -1,0 +1,2902 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>اختبار </title>
+
+<style>
+:root{
+  --bg:#0f172a;
+  --header:#1e293b;
+  --footer:#1e293b;
+  --mine:#2563eb;
+  --other:#1f2937;
+  --border:#334155;
+  --text:#ffffff;
+  --muted:#cbd5e1;
+  --safe-top:env(safe-area-inset-top, 0px);
+  --safe-bottom:env(safe-area-inset-bottom, 0px);
+  --reply-accent:#86efac;
+  --header-total-h:72px;
+  --composer-total-h:88px;
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:var(--bg);
+  font-family:tahoma,sans-serif;
+  color:var(--text);
+  -webkit-text-size-adjust:100%;
+  overscroll-behavior:none;
+}
+
+body{
+  position:fixed;
+  inset:0;
+  touch-action:none;
+}
+
+button,
+input,
+textarea{
+  font-family:inherit;
+}
+
+.hidden{
+  display:none !important;
+}
+
+.app{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:
+    linear-gradient(rgba(15,23,42,.97), rgba(15,23,42,.97)),
+    radial-gradient(circle at top right, rgba(37,99,235,.18), transparent 30%);
+}
+
+/* header fixed */
+header{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:50;
+  background:var(--header);
+  border-bottom:1px solid var(--border);
+  padding-top:var(--safe-top);
+}
+
+.header-inner{
+  min-height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 14px;
+  font-size:18px;
+  font-weight:bold;
+}
+
+.header-action-btn{
+  position:absolute;
+  left:14px;
+  top:50%;
+  transform:translateY(-50%);
+  width:38px;
+  height:38px;
+  border:none;
+  border-radius:50%;
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  font-size:18px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* messages only scroll */
+.messages{
+  position:fixed;
+  top:var(--header-total-h);
+  left:0;
+  right:0;
+  bottom:var(--composer-total-h);
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:14px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  background:transparent;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+  overscroll-behavior-x:none;
+  touch-action:pan-y;
+}
+
+/* message wrappers */
+.msg-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  position:relative;
+  transition:transform .16s ease;
+  will-change:transform;
+}
+
+.msg-wrap.jump-highlight .msg{
+  outline:2px solid rgba(134,239,172,.95);
+  outline-offset:2px;
+}
+
+.msg-wrap.me{
+  align-items:flex-end;
+}
+
+.msg-wrap.other{
+  align-items:flex-start;
+}
+
+.reply-hint{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  opacity:0;
+  transition:opacity .12s ease;
+  font-size:18px;
+  pointer-events:none;
+}
+
+.msg-wrap.swiping .reply-hint{
+  opacity:1;
+}
+
+.msg-wrap.me .reply-hint{
+  right:-24px;
+}
+
+.msg-wrap.other .reply-hint{
+  left:-24px;
+}
+
+.msg{
+  max-width:80%;
+  padding:10px 12px 8px;
+  border-radius:16px;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  position:relative;
+  box-shadow:0 6px 14px rgba(0,0,0,.16);
+
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.msg.me{
+  background:var(--mine);
+  border-bottom-right-radius:6px;
+}
+
+.msg.other{
+  background:var(--other);
+  border-bottom-left-radius:6px;
+}
+
+.reply-box{
+  background:rgba(255,255,255,.11);
+  border-right:3px solid var(--reply-accent);
+  border-radius:10px;
+  padding:7px 9px;
+  margin-bottom:8px;
+  font-size:12px;
+  overflow:hidden;
+}
+
+.reply-name{
+  font-weight:bold;
+  margin-bottom:3px;
+}
+
+.reply-text{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  opacity:.95;
+}
+
+.msg-text{
+  white-space:pre-wrap;
+  line-height:1.45;
+  font-size:15px;
+  
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.msg-meta{
+  margin-top:6px;
+  display:flex;
+  justify-content:flex-end;
+  gap:6px;
+  font-size:11px;
+  color:rgba(255,255,255,.82);
+}
+
+.msg-media{
+  padding:4px 2px 2px;
+}
+.msg-media-wrap{
+  position:relative;
+  display:inline-block;
+}
+
+.media-expand-btn{
+  position:absolute;
+  top:8px;
+  left:8px;
+  width:34px;
+  height:34px;
+  border:none;
+  border-radius:50%;
+  background:rgba(0,0,0,.5);
+  color:#fff;
+  font-size:18px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  z-index:5;
+}
+.msg-image{
+  max-width:220px;
+  border-radius:10px;
+  display:block;
+  -webkit-user-drag:none;
+  user-select:none;
+}
+
+.msg-video{
+  max-width:220px;
+  border-radius:10px;
+  display:block;
+}
+
+.msg-audio{
+  width:220px;
+}
+
+.msg-file{
+  font-size:14px;
+}
+/* composer fixed */
+.composer-shell{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:50;
+  background:var(--footer);
+  border-top:1px solid var(--border);
+  padding-bottom:var(--safe-bottom);
+}
+
+.reply-preview{
+  padding:8px 10px 0;
+}
+.attachment-preview{
+  padding:8px 10px 0;
+}
+
+.recording-preview{
+  padding:8px 10px 0;
+}
+
+.recording-preview-box{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  background:#111827;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  padding:10px 12px;
+}
+
+.recording-preview-main{
+  min-width:0;
+  flex:1;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.recording-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#ef4444;
+  flex:0 0 10px;
+  animation:recordPulse 1s infinite;
+}
+
+.recording-label{
+  font-size:13px;
+  font-weight:bold;
+  color:#fff;
+  white-space:nowrap;
+}
+
+.recording-time{
+  font-size:13px;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+.recording-cancel{
+  background:transparent;
+  border:none;
+  color:#fff;
+  font-size:18px;
+  line-height:1;
+  cursor:pointer;
+  padding:0;
+}
+
+@keyframes recordPulse{
+  0%{ opacity:1; }
+  50%{ opacity:.45; }
+  100%{ opacity:1; }
+}
+
+.attachment-preview-box{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  background:#111827;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  padding:10px 12px;
+}
+
+.attachment-preview-main{
+  min-width:0;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.attachment-preview-title{
+  font-size:12px;
+  font-weight:bold;
+  color:var(--muted);
+}
+
+.attachment-preview-meta{
+  font-size:13px;
+  color:#fff;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.attachment-preview-close{
+  background:transparent;
+  border:none;
+  color:#fff;
+  font-size:18px;
+  line-height:1;
+  cursor:pointer;
+  padding:0;
+}
+
+.attachment-preview-thumb{
+  max-width:120px;
+  max-height:90px;
+  border-radius:10px;
+  display:block;
+  object-fit:cover;
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.attachment-preview-video{
+  width:160px;
+  max-width:100%;
+  max-height:120px;
+  border-radius:10px;
+  display:block;
+  background:#000;
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.attachment-preview-audio{
+  width:220px;
+  max-width:100%;
+  display:block;
+}
+
+.reply-preview-box{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  background:#111827;
+  border:1px solid rgba(255,255,255,.07);
+  border-right:4px solid var(--reply-accent);
+  border-radius:12px;
+  padding:10px 12px;
+}
+
+.reply-preview-main{
+  min-width:0;
+  flex:1;
+}
+
+.reply-preview-title{
+  font-size:12px;
+  font-weight:bold;
+  margin-bottom:4px;
+}
+
+.reply-preview-text{
+  font-size:12px;
+  color:var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.media-viewer{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.88);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:2000;
+}
+
+.media-viewer-content{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:100%;
+}
+
+.media-viewer-image,
+.media-viewer-video{
+  max-width:95vw;
+  max-height:90vh;
+  border-radius:14px;
+  display:block;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+
+.media-viewer-close{
+  position:absolute;
+  top:max(18px, env(safe-area-inset-top, 0px));
+  right:18px;
+  width:44px;
+  height:44px;
+  border:none;
+  border-radius:50%;
+  background:rgba(255,255,255,.14);
+  color:#fff;
+  font-size:28px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  z-index:2100;
+}
+
+.msg-media + .msg-text,
+.msg-file + .msg-text{
+  margin-top:6px;
+}
+  
+.reply-close{
+  background:transparent;
+  border:none;
+  color:#fff;
+  font-size:18px;
+  line-height:1;
+  cursor:pointer;
+  padding:0;
+}
+
+footer{
+  min-height:76px;
+  display:flex;
+  gap:8px;
+  padding:10px;
+  background:var(--footer);
+  align-items:flex-end;
+  flex-wrap:nowrap;
+  min-width:0;
+  width:100%;
+  max-width:100%;
+  overflow:hidden;
+}
+  
+textarea{
+  flex:1;
+  min-width:0;
+  min-height:48px;
+  max-height:96px;
+  border:none;
+  outline:none;
+  border-radius:14px;
+  padding:12px 14px;
+  font-size:16px;
+  background:#fff;
+  color:#111827;
+  resize:none;
+  overflow-y:auto;
+  line-height:1.45;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+button.send-btn{
+  flex:0 0 auto;
+  width:48px;
+  min-width:48px;
+  height:48px;
+  border:none;
+  border-radius:50%;
+  background:#2563eb;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  padding:0;
+}
+
+button.send-btn svg{
+  width:22px;
+  height:22px;
+  display:block;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.attach-btn{
+  flex:0 0 auto;
+  width:48px;
+  height:48px;
+  border:none;
+  border-radius:50%;
+  background:#111827;
+  color:#fff;
+  font-size:28px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+.attach-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.58);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  padding:16px;
+  z-index:1100;
+}
+
+.attach-sheet{
+  width:min(260px, calc(100% - 40px));
+  background:#111827;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
+}
+
+.attach-head{
+  display:none;
+}
+
+.attach-option{
+  width:100%;
+  background:transparent;
+  border:none;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:8px;
+  text-align:right;
+  padding:11px 12px;
+  font-size:14px;
+  cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  flex-direction:row-reverse;
+}
+
+.attach-option:last-child{
+  border-bottom:none;
+}
+
+.attach-option-icon{
+  width:18px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+}
+
+.attach-option-text{
+  white-space:nowrap;
+}
+
+@media (max-width:420px){
+  .attach-btn{
+    width:46px;
+    height:46px;
+    font-size:26px;
+  }
+}
+
+/* menu */
+.menu-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  z-index:1000;
+
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+
+.menu-center{
+  width:min(260px, calc(100% - 40px));
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-inline:auto;
+}
+  
+.menu-message-preview{
+  display:flex;
+  justify-content:flex-end;
+  width:100%;
+  pointer-events:none;
+}
+
+.menu-message-preview .preview-bubble{
+  max-width:74%;
+  max-height:170px;
+  padding:9px 11px 8px;
+  border-radius:15px;
+  box-shadow:0 10px 24px rgba(0,0,0,.28);
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  overflow-y:auto;
+}
+
+.menu-message-preview .preview-bubble.me{
+  background:var(--mine);
+  border-bottom-right-radius:6px;
+}
+
+.menu-message-preview .preview-bubble.other{
+  background:var(--other);
+  border-bottom-left-radius:6px;
+}
+
+.menu-message-preview .preview-text{
+  white-space:pre-wrap;
+  line-height:1.45;
+  font-size:15px;
+
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+
+.menu-message-preview .preview-meta{
+  margin-top:6px;
+  display:flex;
+  justify-content:flex-end;
+  font-size:11px;
+  color:rgba(255,255,255,.82);
+}
+
+.menu-sheet{
+  width:100%;
+  background:#111827;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
+
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+
+.menu-head{
+  display:none;
+}
+  
+.menu-btn{
+  width:100%;
+  background:transparent;
+  border:none;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  text-align:right;
+  padding:13px 18px;
+  font-size:14px;
+  cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,.06);
+
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+
+.menu-btn-label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+
+.menu-btn-icon{
+  width:16px;
+  height:16px;
+  flex:0 0 16px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  opacity:.95;
+}
+
+.menu-btn-icon svg{
+  width:18px;
+  height:18px;
+  display:block;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.menu-btn-text{
+  white-space:nowrap;
+}
+
+.menu-btn:last-child{
+  border-bottom:none;
+}
+
+.menu-btn.danger{
+  color:#fca5a5;
+}
+@media (max-width:420px){
+  .header-inner{
+    min-height:54px;
+    font-size:17px;
+  }
+
+  .msg{
+    max-width:86%;
+  }
+
+  textarea{
+    min-height:46px;
+  }  
+
+  .send-btn{
+    width:46px;
+    min-width:46px;
+    height:46px;
+  }
+  .messages{
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+.lock-screen{
+  position:fixed;
+  inset:0;
+  z-index:5000;
+  background:linear-gradient(rgba(15,23,42,.98), rgba(15,23,42,.98));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.lock-screen.hidden{
+  display:none !important;
+}
+
+.lock-card{
+  width:min(360px, 100%);
+  background:#111827;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;
+  padding:22px 18px;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+  text-align:center;
+}
+
+.lock-title{
+  font-size:22px;
+  font-weight:bold;
+  margin-bottom:8px;
+}
+
+.lock-subtitle{
+  font-size:14px;
+  color:var(--muted);
+  margin-bottom:18px;
+}
+
+.lock-dots{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.lock-dot{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,.35);
+  background:transparent;
+}
+
+.lock-dot.filled{
+  background:#fff;
+  border-color:#fff;
+}
+
+.lock-error{
+  min-height:22px;
+  font-size:13px;
+  color:#fca5a5;
+  margin-bottom:10px;
+}
+
+.lock-pad{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:10px;
+  margin-top:8px;
+}
+
+.lock-key{
+  height:58px;
+  border:none;
+  border-radius:14px;
+  background:#1f2937;
+  color:#fff;
+  font-size:22px;
+  cursor:pointer;
+}
+
+.lock-key-action{
+  font-size:18px;
+}
+  
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header id="chatHeader">
+    <div class="header-inner">
+      <button id="refreshBtn" class="header-action-btn" style="left:14px">↻</button>
+      <button id="logoutBtn" class="header-action-btn" style="left:56px">⎋</button>
+      <span>الخاص 🤍</span>
+    </div>
+  </header>
+
+  <div class="messages" id="messages"></div>
+
+  <div class="composer-shell" id="composerShell">
+    <div class="reply-preview hidden" id="replyPreview"></div>
+    <div class="attachment-preview hidden" id="attachmentPreview"></div>
+    <div class="recording-preview hidden" id="recordingPreview"></div>
+
+    <footer>
+      <input id="imagePicker" type="file" accept="image/*" class="hidden" />
+      <input id="videoPicker" type="file" accept="video/*" class="hidden" />
+      <input id="filePicker" type="file" class="hidden" />
+      <input id="audioPicker" type="file" accept="audio/*" class="hidden" />
+    
+      <button class="attach-btn" id="attachBtn" type="button" aria-label="إضافة مرفق">+</button>
+      <textarea id="text" placeholder="اكتب رسالة..." rows="1"></textarea>
+      <button class="send-btn" id="sendBtn" type="button" aria-label="إرسال أو تسجيل صوت"></button>
+    </footer>
+  </div>
+</div>
+
+<div class="menu-overlay" id="menuOverlay">
+  <div class="menu-center">
+    <div class="menu-message-preview" id="menuMessagePreview"></div>
+
+    <div class="menu-sheet">
+      <div class="menu-head" id="menuHead">خيارات الرسالة</div>
+      <div id="menuActions"></div>
+    </div>
+  </div>
+  </div>
+    <div class="attach-overlay" id="attachOverlay">
+    <div class="attach-sheet">
+      <div class="attach-head">إرسال مرفق</div>
+  
+      <button class="attach-option" type="button" data-kind="image">
+        <span class="attach-option-icon">🖼️</span>
+        <span class="attach-option-text">صورة</span>
+      </button>
+  
+      <button class="attach-option" type="button" data-kind="video">
+        <span class="attach-option-icon">🎥</span>
+        <span class="attach-option-text">فيديو</span>
+      </button>
+  
+      <button class="attach-option" type="button" data-kind="file">
+        <span class="attach-option-icon">📎</span>
+        <span class="attach-option-text">ملف</span>
+      </button>
+  
+      <button class="attach-option" type="button" data-kind="audio">
+        <span class="attach-option-icon">🎤</span>
+        <span class="attach-option-text">ملف صوت</span>
+      </button>
+    </div>
+  </div>
+  
+  <div class="media-viewer hidden" id="mediaViewer">
+    <button class="media-viewer-close" id="mediaViewerClose" type="button" aria-label="إغلاق">×</button>
+    <div class="media-viewer-content" id="mediaViewerContent"></div>
+  </div>
+    <div class="lock-screen" id="lockScreen">
+    <div class="lock-card">
+      <div class="lock-title">الشات مقفل</div>
+      <div class="lock-subtitle">أدخل رمز القفل</div>
+
+      <div class="lock-dots" id="lockDots">
+        <span class="lock-dot"></span>
+        <span class="lock-dot"></span>
+        <span class="lock-dot"></span>
+        <span class="lock-dot"></span>
+      </div>
+
+      <div class="lock-error hidden" id="lockError">الرقم غير صحيح</div>
+
+      <div class="lock-pad">
+        <button type="button" class="lock-key" data-pin-key="1">1</button>
+        <button type="button" class="lock-key" data-pin-key="2">2</button>
+        <button type="button" class="lock-key" data-pin-key="3">3</button>
+        <button type="button" class="lock-key" data-pin-key="4">4</button>
+        <button type="button" class="lock-key" data-pin-key="5">5</button>
+        <button type="button" class="lock-key" data-pin-key="6">6</button>
+        <button type="button" class="lock-key" data-pin-key="7">7</button>
+        <button type="button" class="lock-key" data-pin-key="8">8</button>
+        <button type="button" class="lock-key" data-pin-key="9">9</button>
+        <button type="button" class="lock-key lock-key-action" id="lockBackspace">⌫</button>
+        <button type="button" class="lock-key" data-pin-key="0">0</button>
+        <button type="button" class="lock-key lock-key-action" id="lockClear">C</button>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://vbwtsnxrshgjqmbgtagw.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_esJOtB6hRNf48Uo61txcyg_9F3yolJO';
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const root = document.documentElement;
+const headerEl = document.getElementById('chatHeader');
+const logoutBtn = document.getElementById('logoutBtn');
+const refreshBtn = document.getElementById('refreshBtn');
+  
+const composerShell = document.getElementById('composerShell');
+const messagesEl = document.getElementById('messages');
+const imagePicker = document.getElementById('imagePicker');
+const videoPicker = document.getElementById('videoPicker');
+const filePicker = document.getElementById('filePicker');
+const audioPicker = document.getElementById('audioPicker');
+const attachBtn = document.getElementById('attachBtn');
+const input = document.getElementById('text');
+const sendBtn = document.getElementById('sendBtn');
+const replyPreview = document.getElementById('replyPreview');
+const attachmentPreview = document.getElementById('attachmentPreview');
+const recordingPreview = document.getElementById('recordingPreview');
+const menuOverlay = document.getElementById('menuOverlay');
+const menuHead = document.getElementById('menuHead');
+const menuActions = document.getElementById('menuActions');
+const menuMessagePreview = document.getElementById('menuMessagePreview');
+const attachOverlay = document.getElementById('attachOverlay');
+const mediaViewer = document.getElementById('mediaViewer');
+const mediaViewerContent = document.getElementById('mediaViewerContent');
+const mediaViewerClose = document.getElementById('mediaViewerClose');
+const lockScreen = document.getElementById('lockScreen');
+const lockDots = document.getElementById('lockDots');
+const lockError = document.getElementById('lockError');
+const lockBackspace = document.getElementById('lockBackspace');
+const lockClear = document.getElementById('lockClear');
+
+let currentUser = null;
+let currentUserId = null;
+let channel = null;
+
+const CHAT_PIN = '2580';
+let enteredPin = '';
+let isChatLocked = true;
+
+let channelState = 'closed';
+let reconnectTimer = null;
+
+let messagesLoaded = false;
+let isSendingMessage = false;
+let oldestMessageTime = null;
+let isLoadingOlder = false;
+  
+let replyingToId = null;
+let editingId = null;
+let menuTargetId = null;
+let selectedAttachment = null;
+let selectedAttachmentUrl = '';
+let mediaRecorder = null;
+let mediaStream = null;
+let recordedChunks = [];
+let isRecording = false;
+let recordingTimer = null;
+let recordingSeconds = 0;
+let isCancellingRecording = false;
+  
+let longPressTimer = null;
+let pressStartX = 0;
+let pressStartY = 0;
+let isSwiping = false;
+let swipeTarget = null;
+let suppressClickUntil = 0;
+
+const SWIPE_REPLY_THRESHOLD = 72;
+const SWIPE_MAX = 90;
+const LONG_PRESS_MS = 380;
+const MOVE_CANCEL = 10;
+
+// بيانات محلية مؤقتة للاختبار فقط
+// سيتم استبدالها لاحقًا ببيانات Supabase
+const data = [];
+const replyCache = new Map();
+
+const signedUrlCache = new Map();
+
+function updateLockDots() {
+  const dots = lockDots.querySelectorAll('.lock-dot');
+  dots.forEach((dot, index) => {
+    dot.classList.toggle('filled', index < enteredPin.length);
+  });
+}
+
+function showLockError(message) {
+  lockError.textContent = message;
+  lockError.classList.remove('hidden');
+}
+
+function clearLockError() {
+  lockError.textContent = '';
+  lockError.classList.add('hidden');
+}
+
+function lockChat() {
+  isChatLocked = true;
+  enteredPin = '';
+  updateLockDots();
+  clearLockError();
+  lockScreen.classList.remove('hidden');
+}
+
+function unlockChat() {
+  isChatLocked = false;
+  enteredPin = '';
+  updateLockDots();
+  clearLockError();
+  lockScreen.classList.add('hidden');
+}
+
+async function refreshChat() {
+  try {
+    await loadMessagesFromSupabase();
+  } catch (err) {
+    console.error('Refresh error:', err);
+  }
+}
+
+function submitPinDigit(digit) {
+  if (!isChatLocked) return;
+  if (enteredPin.length >= 4) return;
+
+  enteredPin += String(digit);
+  updateLockDots();
+  clearLockError();
+
+  if (enteredPin.length === 4) {
+    if (enteredPin === CHAT_PIN) {
+      unlockChat();
+    } else {
+      showLockError('الرقم غير صحيح');
+      if (navigator.vibrate) navigator.vibrate(100);
+      enteredPin = '';
+      setTimeout(() => {
+        updateLockDots();
+      }, 120);
+    }
+  }
+}
+  
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function getActionButtonIcon(mode) {
+  if (mode === 'send') {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M22 2L11 13"></path>
+        <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+      </svg>
+    `;
+  }
+
+  if (mode === 'stop') {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="7" y="7" width="10" height="10" rx="2"></rect>
+      </svg>
+    `;
+  }
+
+  return `
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"></path>
+      <path d="M19 11a7 7 0 0 1-14 0"></path>
+      <path d="M12 18v3"></path>
+      <path d="M8 21h8"></path>
+    </svg>
+  `;
+}
+
+function updateComposerActionButton() {
+
+  const hasText = input.value.trim().length > 0;
+  const hasAttachment = !!selectedAttachment;
+
+  let mode;
+
+  if (isRecording) {
+    mode = 'stop';
+  } else if (hasText || hasAttachment) {
+    mode = 'send';
+  } else {
+    mode = 'mic';
+  }
+
+  sendBtn.dataset.mode = mode;
+  sendBtn.innerHTML = getActionButtonIcon(mode);
+
+  if (mode === 'send') {
+    sendBtn.setAttribute('aria-label', 'إرسال الرسالة');
+  } else if (mode === 'stop') {
+    sendBtn.setAttribute('aria-label', 'إيقاف التسجيل');
+  } else {
+    sendBtn.setAttribute('aria-label', 'تسجيل صوت');
+  }
+}
+  
+function autoGrowTextarea() {
+  input.style.height = '48px';
+  const nextHeight = Math.min(input.scrollHeight, 96);
+  input.style.height = nextHeight + 'px';
+}
+  
+function syncLayoutHeights() {
+
+  const headerH = Math.ceil(headerEl.getBoundingClientRect().height);
+  const composerH = Math.ceil(composerShell.getBoundingClientRect().height);
+
+  root.style.setProperty('--header-total-h', `${headerH}px`);
+  root.style.setProperty('--composer-total-h', `${composerH}px`);
+}
+
+function getMsgById(id) {
+  return data.find(m => m.id === id) || null;
+}
+
+function rememberReplyMessage(row) {
+  if (!row || !row.id) return;
+
+  replyCache.set(String(row.id), {
+    id: row.id,
+    mine: row.user_id === currentUserId,
+    text: row.content || ''
+  });
+}
+
+async function hydrateMissingReplyTargets(rows) {
+  const missingIds = [...new Set(
+    rows
+      .map(row => row.reply_to_id)
+      .filter(Boolean)
+      .filter(id => !getMsgById(id) && !replyCache.has(String(id)))
+  )];
+
+  if (missingIds.length === 0) return;
+
+  const { data: replyRows, error } = await sb
+    .from('chat_messages')
+    .select('id, user_id, content')
+    .in('id', missingIds);
+
+  if (error || !replyRows) return;
+
+  for (const row of replyRows) {
+    rememberReplyMessage(row);
+  }
+}
+  
+function buildReplyPreviewText(msg) {
+  if (!msg) return 'رسالة';
+  return msg.text?.trim() || 'رسالة';
+}
+
+function renderReplySnippet(msg) {
+  if (!msg.replyToId) return '';
+
+  const original =
+    getMsgById(msg.replyToId) ||
+    replyCache.get(String(msg.replyToId)) ||
+    null;
+
+  const name = original ? (original.mine ? 'أنت' : 'الطرف الآخر') : 'رسالة';
+  const text = original ? buildReplyPreviewText(original) : 'رسالة';
+
+  return `
+    <div class="reply-box" data-jump-to="${escapeHtml(String(msg.replyToId))}">
+      <div class="reply-name">${escapeHtml(name)}</div>
+      <div class="reply-text">${escapeHtml(text)}</div>
+    </div>
+  `;
+}
+
+function renderMessageContent(msg) {
+  const textHtml = msg.text
+    ? `<div class="msg-text">${escapeHtml(msg.text)}</div>`
+    : '';
+
+  if (msg.type === 'image') {
+    return `
+      <div class="msg-media">
+        <img src="${msg.file}" class="msg-image" data-full-image="${msg.file}">
+      </div>
+      ${textHtml}
+    `;
+  }
+
+  if (msg.type === 'video') {
+    return `
+      <div class="msg-media">
+        <div class="msg-media-wrap">
+          <button class="media-expand-btn" type="button" data-open-video="${msg.file}" aria-label="تكبير الفيديو">⤢</button>
+          <video src="${msg.file}" controls playsinline class="msg-video"></video>
+        </div>
+      </div>
+      ${textHtml}
+    `;
+  }
+
+  if (msg.type === 'audio') {
+    return `
+      <div class="msg-media">
+        <audio src="${msg.file}" controls class="msg-audio"></audio>
+      </div>
+      ${textHtml}
+    `;
+  }
+
+  if (msg.type === 'file') {
+    return `
+      <div class="msg-file">
+        📎 ${escapeHtml(msg.fileName || 'ملف')}
+      </div>
+      ${textHtml}
+    `;
+  }
+
+  return textHtml || `<div class="msg-text"></div>`;
+}
+  
+function renderMessages() {
+  messagesEl.innerHTML = '';
+
+  data.forEach(msg => {
+    const wrap = document.createElement('div');
+    wrap.className = `msg-wrap ${msg.mine ? 'me' : 'other'}`;
+    wrap.dataset.id = String(msg.id);
+
+    wrap.innerHTML = `
+      <div class="reply-hint">↩️</div>
+      <div class="msg ${msg.mine ? 'me' : 'other'}">
+        ${renderReplySnippet(msg)}
+        ${renderMessageContent(msg)}
+        <div class="msg-meta">
+          ${msg.edited ? '<span>(تم التعديل)</span>' : ''}
+          <span>${escapeHtml(msg.time)}</span>
+        </div>
+      </div>
+    `;
+
+    bindInteractions(wrap, msg);
+    messagesEl.appendChild(wrap);
+
+    const replyJumpEl = wrap.querySelector('[data-jump-to]');
+    if (replyJumpEl) {
+      replyJumpEl.style.cursor = 'pointer';
+      replyJumpEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        jumpToMessage(replyJumpEl.dataset.jumpTo);
+      });
+    }
+    
+    const imageEl = wrap.querySelector('[data-full-image]');
+    if (imageEl) {
+      imageEl.addEventListener('click', () => {
+        openMediaViewer('image', imageEl.dataset.fullImage);
+      });
+    }
+    
+    const openVideoBtn = wrap.querySelector('[data-open-video]');
+    if (openVideoBtn) {
+      openVideoBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openMediaViewer('video', openVideoBtn.dataset.openVideo);
+      });
+    }
+  });
+
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  requestAnimationFrame(syncLayoutHeights);
+}
+
+function mapSupabaseRowToMessage(row) {
+  return {
+    id: row.id,
+    mine: row.user_id === currentUserId,
+    text: row.content || '',
+    time: new Date(row.created_at).toLocaleTimeString('ar', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }),
+    createdAt: row.created_at,
+    replyToId: row.reply_to_id || null,
+    type: row.attachment_type || null,
+    file: row.attachment_path || '',
+    attachmentPath: row.attachment_path || '',
+    fileName: row.attachment_path ? row.attachment_path.split('/').pop() : ''
+  };
+}
+
+async function createSignedAttachmentUrl(path) {
+  if (!path) return '';
+
+  const cached = signedUrlCache.get(path);
+  if (cached) return cached;
+
+  const { data, error } = await sb
+    .storage
+    .from('chat')
+    .createSignedUrl(path, 3600);
+
+  if (error) {
+    console.error('Signed URL error:', error);
+    return '';
+  }
+
+  const url = data?.signedUrl || '';
+  if (url) {
+    signedUrlCache.set(path, url);
+  }
+
+  return url;
+}
+
+async function hydrateMessageMedia(msg) {
+  if (!msg || !msg.file || !msg.type) return msg;
+
+  if (msg.type === 'image' || msg.type === 'video' || msg.type === 'audio') {
+    const signedUrl = await createSignedAttachmentUrl(msg.file);
+    return {
+      ...msg,
+      file: signedUrl || msg.file
+    };
+  }
+
+  return msg;
+}
+  
+function appendMessageToUI(msg) {
+  const wrap = document.createElement('div');
+  wrap.className = `msg-wrap ${msg.mine ? 'me' : 'other'}`;
+  wrap.dataset.id = String(msg.id);
+
+  wrap.innerHTML = `
+    <div class="reply-hint">↩️</div>
+    <div class="msg ${msg.mine ? 'me' : 'other'}">
+      ${renderReplySnippet(msg)}
+      ${renderMessageContent(msg)}
+      <div class="msg-meta">
+        ${msg.edited ? '<span>(تم التعديل)</span>' : ''}
+        <span>${escapeHtml(msg.time)}</span>
+      </div>
+    </div>
+  `;
+
+  bindInteractions(wrap, msg);
+  messagesEl.appendChild(wrap);
+
+  const replyJumpEl = wrap.querySelector('[data-jump-to]');
+  if (replyJumpEl) {
+    replyJumpEl.style.cursor = 'pointer';
+    replyJumpEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      jumpToMessage(replyJumpEl.dataset.jumpTo);
+    });
+  }
+
+  const imageEl = wrap.querySelector('[data-full-image]');
+  if (imageEl) {
+    imageEl.addEventListener('click', () => {
+      openMediaViewer('image', imageEl.dataset.fullImage);
+    });
+  }
+
+  const openVideoBtn = wrap.querySelector('[data-open-video]');
+  if (openVideoBtn) {
+    openVideoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openMediaViewer('video', openVideoBtn.dataset.openVideo);
+    });
+  }
+
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function insertMessageInOrder(msg) {
+  const exists = data.some(m => String(m.id) === String(msg.id));
+  if (exists) return;
+
+  const msgTime = new Date(msg.createdAt).getTime();
+
+  let insertIndex = data.findIndex(existing => {
+    return new Date(existing.createdAt).getTime() > msgTime;
+  });
+
+  if (insertIndex === -1) {
+    data.push(msg);
+    appendMessageToUI(msg);
+    return;
+  }
+
+  data.splice(insertIndex, 0, msg);
+
+  const wrap = document.createElement('div');
+  wrap.className = `msg-wrap ${msg.mine ? 'me' : 'other'}`;
+  wrap.dataset.id = String(msg.id);
+
+  wrap.innerHTML = `
+    <div class="reply-hint">↩️</div>
+    <div class="msg ${msg.mine ? 'me' : 'other'}">
+      ${renderReplySnippet(msg)}
+      ${renderMessageContent(msg)}
+      <div class="msg-meta">
+        ${msg.edited ? '<span>(تم التعديل)</span>' : ''}
+        <span>${escapeHtml(msg.time)}</span>
+      </div>
+    </div>
+  `;
+
+  bindInteractions(wrap, msg);
+
+  const replyJumpEl = wrap.querySelector('[data-jump-to]');
+  if (replyJumpEl) {
+    replyJumpEl.style.cursor = 'pointer';
+    replyJumpEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      jumpToMessage(replyJumpEl.dataset.jumpTo);
+    });
+  }
+
+  const imageEl = wrap.querySelector('[data-full-image]');
+  if (imageEl) {
+    imageEl.addEventListener('click', () => {
+      openMediaViewer('image', imageEl.dataset.fullImage);
+    });
+  }
+
+  const openVideoBtn = wrap.querySelector('[data-open-video]');
+  if (openVideoBtn) {
+    openVideoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openMediaViewer('video', openVideoBtn.dataset.openVideo);
+    });
+  }
+
+  const nextMsg = data[insertIndex + 1];
+  if (!nextMsg) {
+    messagesEl.appendChild(wrap);
+    return;
+  }
+
+  const nextEl = messagesEl.querySelector(`.msg-wrap[data-id="${String(nextMsg.id)}"]`);
+  if (nextEl) {
+    messagesEl.insertBefore(wrap, nextEl);
+  } else {
+    messagesEl.appendChild(wrap);
+  }
+}
+
+function removeMessageFromUI(messageId) {
+  const el = messagesEl.querySelector(`.msg-wrap[data-id="${String(messageId)}"]`);
+  if (el) {
+    el.remove();
+  }
+}
+
+function updateMessageInUI(messageId, newText) {
+  const wrap = messagesEl.querySelector(`.msg-wrap[data-id="${String(messageId)}"]`);
+  if (!wrap) return;
+
+  const textEl = wrap.querySelector('.msg-text');
+  if (textEl) {
+    textEl.textContent = newText;
+  }
+
+  const meta = wrap.querySelector('.msg-meta');
+  if (meta && !meta.innerHTML.includes('تم التعديل')) {
+    meta.innerHTML = `<span>(تم التعديل)</span> ${meta.innerHTML}`;
+  }
+}
+
+function updateMessageInData(messageId, newText) {
+  const msg = data.find(m => String(m.id) === String(messageId));
+  if (!msg) return;
+
+  msg.text = newText;
+  msg.edited = true;
+}
+
+function clearReplyPreview() {
+  replyingToId = null;
+  replyPreview.classList.add('hidden');
+  replyPreview.innerHTML = '';
+  requestAnimationFrame(syncLayoutHeights);
+}
+
+function openReplyPreview(msgId) {
+  replyingToId = msgId;
+  editingId = null;
+
+  const msg = getMsgById(msgId);
+  const name = msg?.mine ? 'أنت' : 'الطرف الآخر';
+  const text = buildReplyPreviewText(msg);
+
+  replyPreview.classList.remove('hidden');
+  replyPreview.innerHTML = `
+    <div class="reply-preview-box">
+      <div class="reply-preview-main">
+        <div class="reply-preview-title">رد على ${escapeHtml(name)}</div>
+        <div class="reply-preview-text">${escapeHtml(text)}</div>
+      </div>
+      <button class="reply-close" id="closeReplyBtn" type="button">×</button>
+    </div>
+  `;
+
+  document.getElementById('closeReplyBtn').addEventListener('click', clearReplyPreview);
+  requestAnimationFrame(syncLayoutHeights);
+  input.focus();
+}
+
+function jumpToMessage(messageId) {
+  if (!messageId) return;
+
+  const target = messagesEl.querySelector(`.msg-wrap[data-id="${String(messageId)}"]`);
+  if (!target) return;
+
+  target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  target.classList.add('jump-highlight');
+  setTimeout(() => {
+    target.classList.remove('jump-highlight');
+  }, 1400);
+}
+
+function getMenuIconSvg(type) {
+  if (type === 'copy') {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="9" y="9" width="10" height="10" rx="2"></rect>
+        <path d="M7 15H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1"></path>
+      </svg>
+    `;
+  }
+
+  if (type === 'edit') {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 20h9"></path>
+        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
+      </svg>
+    `;
+  }
+
+  if (type === 'delete') {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 6h18"></path>
+        <path d="M8 6V4h8v2"></path>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+        <path d="M10 11v6"></path>
+        <path d="M14 11v6"></path>
+      </svg>
+    `;
+  }
+
+  return '';
+}
+
+function openMenu(msg) {
+  menuTargetId = msg.id;
+  menuHead.textContent = msg.mine ? 'خيارات رسالتك' : 'خيارات الرسالة';
+  menuActions.innerHTML = '';
+
+  menuMessagePreview.innerHTML = `
+    <div class="preview-bubble ${msg.mine ? 'me' : 'other'}">
+      <div class="preview-text">${escapeHtml(msg.text || '')}</div>
+      <div class="preview-meta">${escapeHtml(msg.time || '')}</div>
+    </div>
+  `;
+
+  const actions = [
+    {
+      label: 'نسخ',
+      icon: 'copy',
+      action: () => copyMessage(msg.id)
+    }
+  ];
+
+  if (msg.mine) {
+    actions.push(
+      {
+        label: 'تعديل',
+        icon: 'edit',
+        action: () => editMessage(msg.id)
+      },
+      {
+        label: 'حذف',
+        icon: 'delete',
+        action: () => deleteMessage(msg.id),
+        danger: true
+      }
+    );
+  }
+
+  actions.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = `menu-btn${item.danger ? ' danger' : ''}`;
+    btn.type = 'button';
+    btn.innerHTML = `
+      <span class="menu-btn-label">
+        <span class="menu-btn-icon">${getMenuIconSvg(item.icon)}</span>
+        <span class="menu-btn-text">${item.label}</span>
+      </span>
+    `;
+    btn.addEventListener('click', () => {
+      closeMenu();
+      item.action();
+    });
+    menuActions.appendChild(btn);
+  });
+
+  menuOverlay.style.display = 'flex';
+}
+function closeMenu() {
+  menuOverlay.style.display = 'none';
+  menuTargetId = null;
+  menuMessagePreview.innerHTML = '';
+}
+
+function openAttachSheet() {
+  attachOverlay.style.display = 'flex';
+}
+
+function closeAttachSheet() {
+  attachOverlay.style.display = 'none';
+}
+
+function openMediaViewer(type, src) {
+  if (!src) return;
+
+  if (type === 'video') {
+    mediaViewerContent.innerHTML = `
+      <video class="media-viewer-video" src="${src}" controls autoplay playsinline></video>
+    `;
+  } else {
+    mediaViewerContent.innerHTML = `
+      <img class="media-viewer-image" src="${src}" alt="عرض الوسائط">
+    `;
+  }
+
+  mediaViewer.classList.remove('hidden');
+}
+
+function closeMediaViewer() {
+  mediaViewerContent.innerHTML = '';
+  mediaViewer.classList.add('hidden');
+}
+
+function formatRecordingTime(totalSeconds) {
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function stopMediaTracks() {
+  if (mediaStream) {
+    mediaStream.getTracks().forEach(track => track.stop());
+    mediaStream = null;
+  }
+}
+
+function updateRecordingPreview() {
+  if (!isRecording) {
+    recordingPreview.classList.add('hidden');
+    recordingPreview.innerHTML = '';
+    requestAnimationFrame(syncLayoutHeights);
+    return;
+  }
+
+  recordingPreview.classList.remove('hidden');
+  recordingPreview.innerHTML = `
+    <div class="recording-preview-box">
+      <div class="recording-preview-main">
+        <span class="recording-dot"></span>
+        <span class="recording-label">جارٍ تسجيل الصوت</span>
+        <span class="recording-time">${formatRecordingTime(recordingSeconds)}</span>
+      </div>
+      <button class="recording-cancel" id="cancelRecordingBtn" type="button">×</button>
+    </div>
+  `;
+
+  document.getElementById('cancelRecordingBtn').addEventListener('click', cancelRecording);
+  requestAnimationFrame(syncLayoutHeights);
+}
+
+async function startRecording() {
+  if (selectedAttachment) {
+    clearSelectedAttachment();
+  }
+
+  if (editingId) {
+    return;
+  }
+
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(mediaStream);
+    recordedChunks = [];
+    recordingSeconds = 0;
+
+    mediaRecorder.addEventListener('dataavailable', (event) => {
+      if (event.data && event.data.size > 0) {
+        recordedChunks.push(event.data);
+      }
+    });
+
+    mediaRecorder.addEventListener('stop', () => {
+      const mimeType = mediaRecorder?.mimeType || 'audio/webm';
+    
+      if (isCancellingRecording) {
+        isCancellingRecording = false;
+        stopMediaTracks();
+        mediaRecorder = null;
+        recordedChunks = [];
+        updateComposerActionButton();
+        updateRecordingPreview();
+        return;
+      }
+    
+      const ext = mimeType.includes('ogg') ? 'ogg' : 'webm';
+      const audioBlob = new Blob(recordedChunks, { type: mimeType });
+      selectedAttachment = new File([audioBlob], `recording_${Date.now()}.${ext}`, { type: mimeType });
+    
+      updateAttachmentPreview();
+      stopMediaTracks();
+      mediaRecorder = null;
+      recordedChunks = [];
+      updateComposerActionButton();
+    });
+
+    mediaRecorder.start();
+    isRecording = true;
+    updateComposerActionButton();
+    updateRecordingPreview();
+
+    recordingTimer = setInterval(() => {
+      recordingSeconds += 1;
+      updateRecordingPreview();
+    }, 1000);
+  } catch (err) {
+    alert('تعذر الوصول إلى الميكروفون');
+    stopMediaTracks();
+  }
+}
+
+function stopRecording() {
+  if (!isRecording || !mediaRecorder) return;
+
+  isRecording = false;
+
+  if (recordingTimer) {
+    clearInterval(recordingTimer);
+    recordingTimer = null;
+  }
+
+  updateComposerActionButton();
+  updateRecordingPreview();
+  mediaRecorder.stop();
+}
+
+function cancelRecording() {
+  if (!isRecording) return;
+
+  isRecording = false;
+  isCancellingRecording = true;
+
+  if (recordingTimer) {
+    clearInterval(recordingTimer);
+    recordingTimer = null;
+  }
+
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+  } else {
+    isCancellingRecording = false;
+    stopMediaTracks();
+    mediaRecorder = null;
+    recordedChunks = [];
+  }
+
+  recordingSeconds = 0;
+  clearSelectedAttachment();
+  updateComposerActionButton();
+  updateRecordingPreview();
+}
+
+function clearSelectedAttachment() {
+  selectedAttachment = null;
+
+  if (selectedAttachmentUrl) {
+    URL.revokeObjectURL(selectedAttachmentUrl);
+    selectedAttachmentUrl = '';
+  }
+
+  attachmentPreview.classList.add('hidden');
+  attachmentPreview.innerHTML = '';
+
+  if (!isRecording) {
+    recordingPreview.classList.add('hidden');
+    recordingPreview.innerHTML = '';
+  }
+
+  updateComposerActionButton();
+  requestAnimationFrame(syncLayoutHeights);
+}
+
+function updateAttachmentPreview() {
+  if (!selectedAttachment) {
+    attachmentPreview.classList.add('hidden');
+    attachmentPreview.innerHTML = '';
+    requestAnimationFrame(syncLayoutHeights);
+    return;
+  }
+
+  if (selectedAttachmentUrl) {
+    URL.revokeObjectURL(selectedAttachmentUrl);
+    selectedAttachmentUrl = '';
+  }
+
+  const file = selectedAttachment;
+  const type = file.type || '';
+  let previewMedia = '';
+
+  if (type.startsWith('image/')) {
+    selectedAttachmentUrl = URL.createObjectURL(file);
+    previewMedia = `<img class="attachment-preview-thumb" src="${selectedAttachmentUrl}" alt="معاينة صورة">`;
+  } else if (type.startsWith('video/')) {
+    selectedAttachmentUrl = URL.createObjectURL(file);
+    previewMedia = `<video class="attachment-preview-video" src="${selectedAttachmentUrl}" controls playsinline preload="metadata"></video>`;
+  } else if (type.startsWith('audio/')) {
+    selectedAttachmentUrl = URL.createObjectURL(file);
+    previewMedia = `<audio class="attachment-preview-audio" src="${selectedAttachmentUrl}" controls preload="metadata"></audio>`;
+  }
+  attachmentPreview.classList.remove('hidden');
+  attachmentPreview.innerHTML = `
+    <div class="attachment-preview-box">
+      <div class="attachment-preview-main">
+        <div class="attachment-preview-title">مرفق جاهز للإرسال</div>
+        ${previewMedia}
+        <div class="attachment-preview-meta">${escapeHtml(file.name)}</div>
+      </div>
+      <button class="attachment-preview-close" id="clearAttachmentBtn" type="button">×</button>
+    </div>
+  `;
+
+  document.getElementById('clearAttachmentBtn').addEventListener('click', clearSelectedAttachment);
+  requestAnimationFrame(syncLayoutHeights);
+}
+
+function handlePickedFile(file) {
+  if (!file) return;
+
+  if (isRecording) {
+    cancelRecording();
+  }
+
+  selectedAttachment = file;
+  updateAttachmentPreview();
+  updateComposerActionButton();
+}
+
+function getAttachmentTypeFromFile(file) {
+  if (!file) return null;
+
+  if (file.type.startsWith('image/')) return 'image';
+  if (file.type.startsWith('video/')) return 'video';
+  if (file.type.startsWith('audio/')) return 'audio';
+  return 'file';
+}
+
+async function uploadAttachment(file) {
+  if (!file) return null;
+
+  const ext = file.name.includes('.') ? file.name.split('.').pop().toLowerCase() : 'bin';
+
+  let contentType = file.type || '';
+
+  if (!contentType) {
+    if (ext === 'm4a') contentType = 'audio/mp4';
+    else if (ext === 'aac') contentType = 'audio/aac';
+    else if (ext === 'mp3') contentType = 'audio/mpeg';
+    else if (ext === 'ogg') contentType = 'audio/ogg';
+    else if (ext === 'webm') contentType = 'audio/webm';
+    else if (ext === 'mp4') contentType = 'video/mp4';
+    else if (ext === 'mov') contentType = 'video/quicktime';
+    else if (ext === 'jpg' || ext === 'jpeg') contentType = 'image/jpeg';
+    else if (ext === 'png') contentType = 'image/png';
+  }
+
+  const fileName = `${currentUserId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+  const { error } = await sb
+    .storage
+    .from('chat')
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return fileName;
+}
+
+async function copyMessage(id) {
+  const msg = getMsgById(id);
+  if (!msg) return;
+  try {
+    await navigator.clipboard.writeText(msg.text || '');
+  } catch {
+    alert('تعذر النسخ');
+  }
+}
+
+function editMessage(id) {
+  const msg = getMsgById(id);
+  if (!msg || !msg.mine) return;
+
+  editingId = id;
+  clearReplyPreview();
+  clearSelectedAttachment();
+  input.value = msg.text;
+  autoGrowTextarea();
+  updateComposerActionButton();
+  input.focus();
+}
+
+async function deleteMessage(id) {
+  const idx = data.findIndex(m => String(m.id) === String(id));
+  if (idx === -1) return;
+
+  const msg = data[idx];
+  if (!msg || !msg.mine) return;
+
+  if (!confirm('هل تريد حذف الرسالة؟')) return;
+
+  const attachmentPath = msg.attachmentPath || null;
+
+  const { error } = await sb
+    .from('chat_messages')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', currentUserId);
+
+  if (error) {
+    console.error('Delete error:', error);
+    alert(error.message || 'فشل حذف الرسالة');
+    return;
+  }
+
+  if (attachmentPath) {
+    console.log('Deleting storage path:', attachmentPath);
+
+    const { data: removedFiles, error: storageError } = await sb
+      .storage
+      .from('chat')
+      .remove([attachmentPath]);
+
+    console.log('Storage remove result:', removedFiles);
+
+    if (storageError) {
+      console.error('Storage delete error:', storageError);
+    }
+  }
+
+  data.splice(idx, 1);
+  removeMessageFromUI(id);
+
+  if (replyingToId && String(replyingToId) === String(id)) {
+    clearReplyPreview();
+  }
+
+  closeMenu();
+}
+
+  
+async function sendMessage() {
+  const text = input.value.trim();
+
+  if (isSendingMessage) return;
+
+  if (!currentUserId) {
+    alert('الجلسة غير موجودة، سجل الدخول من جديد');
+    window.location.href = 'login.html';
+    return;
+  }
+
+  if (!text && !selectedAttachment) return;
+
+  isSendingMessage = true;
+  sendBtn.disabled = true;
+
+  try {
+    if (editingId) {
+      const { error } = await sb
+        .from('chat_messages')
+        .update({ content: text })
+        .eq('id', editingId)
+        .eq('user_id', currentUserId);
+
+      if (error) {
+        console.error('Edit error:', error);
+        alert('فشل تعديل الرسالة');
+        return;
+      }
+
+      const msg = data.find(m => String(m.id) === String(editingId));
+      if (msg) {
+        msg.text = text;
+        msg.edited = true;
+      }
+
+      updateMessageInUI(editingId, text);
+
+      editingId = null;
+      input.value = '';
+      autoGrowTextarea();
+      updateComposerActionButton();
+      return;
+    }
+
+    let attachmentPath = null;
+    let attachmentType = null;
+
+    if (selectedAttachment) {
+      attachmentType = getAttachmentTypeFromFile(selectedAttachment);
+
+      if (
+        attachmentType !== 'image' &&
+        attachmentType !== 'video' &&
+        attachmentType !== 'audio'
+      ) {
+        alert('نربط الصور والفيديو والصوت فقط حاليًا');
+        return;
+      }
+
+      attachmentPath = await uploadAttachment(selectedAttachment);
+    }
+
+    const { error } = await sb
+      .from('chat_messages')
+      .insert([
+        {
+          user_id: currentUserId,
+          content: text,
+          reply_to_id: replyingToId || null,
+          attachment_path: attachmentPath,
+          attachment_type: attachmentType
+        }
+      ]);
+
+    if (error) {
+      console.error('Send error:', error);
+      alert('فشل إرسال الرسالة');
+      return;
+    }
+
+    input.value = '';
+    autoGrowTextarea();
+    clearReplyPreview();
+    clearSelectedAttachment();
+    updateComposerActionButton();
+
+  } catch (err) {
+    console.error('Unexpected send error:', err);
+    alert('حدث خطأ غير متوقع أثناء الإرسال');
+  } finally {
+    isSendingMessage = false;
+    sendBtn.disabled = false;
+  }
+}
+
+  
+function getPoint(e) {
+  if (e.touches?.length) {
+    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+  if (e.changedTouches?.length) {
+    return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+  }
+  return { x: e.clientX || 0, y: e.clientY || 0 };
+}
+
+function clearLongPress() {
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+}
+
+function resetSwipe(wrap) {
+  if (!wrap) return;
+  wrap.style.transform = 'translateX(0px)';
+  wrap.classList.remove('swiping');
+}
+
+function handleSwipeMove(e, wrap) {
+  if (!swipeTarget) return;
+
+  const point = getPoint(e);
+  const dx = point.x - pressStartX;
+  const dy = Math.abs(point.y - pressStartY);
+
+  if (dy > MOVE_CANCEL && !isSwiping) {
+    clearLongPress();
+    swipeTarget = null;
+    resetSwipe(wrap);
+    return;
+  }
+
+  if (dx > 0) {
+    isSwiping = true;
+    clearLongPress();
+    const move = Math.min(dx, SWIPE_MAX);
+    wrap.style.transform = `translateX(${move}px)`;
+    wrap.classList.add('swiping');
+  }
+}
+
+function handleSwipeEnd(wrap, msg) {
+  clearLongPress();
+
+  const matrix = new DOMMatrixReadOnly(getComputedStyle(wrap).transform);
+  const movedX = matrix.m41 || 0;
+
+  if (movedX >= SWIPE_REPLY_THRESHOLD) {
+    openReplyPreview(msg.id);
+    if (navigator.vibrate) navigator.vibrate(20);
+  }
+
+  resetSwipe(wrap);
+  swipeTarget = null;
+  isSwiping = false;
+}
+
+function bindInteractions(wrap, msg) {
+  const start = (e) => {
+    const target = e.target;
+    if (target.closest('button') || target.closest('input') || target.closest('textarea')) return;
+
+    const p = getPoint(e);
+    pressStartX = p.x;
+    pressStartY = p.y;
+    swipeTarget = wrap;
+    isSwiping = false;
+
+    clearLongPress();
+    longPressTimer = setTimeout(() => {
+      suppressClickUntil = Date.now() + 600;
+      openMenu(msg);
+      if (navigator.vibrate) navigator.vibrate(18);
+    }, LONG_PRESS_MS);
+  };
+
+  const move = (e) => handleSwipeMove(e, wrap);
+  const end = () => handleSwipeEnd(wrap, msg);
+  const cancel = () => {
+    clearLongPress();
+    resetSwipe(wrap);
+    swipeTarget = null;
+    isSwiping = false;
+  };
+
+  wrap.addEventListener('touchstart', start, { passive: true });
+  wrap.addEventListener('touchmove', move, { passive: true });
+  wrap.addEventListener('touchend', end);
+  wrap.addEventListener('touchcancel', cancel);
+
+  wrap.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    start(e);
+  });
+  wrap.addEventListener('mousemove', move);
+  wrap.addEventListener('mouseup', end);
+  wrap.addEventListener('mouseleave', cancel);
+
+  wrap.addEventListener('contextmenu', (e) => e.preventDefault());
+  wrap.addEventListener('dragstart', (e) => e.preventDefault());
+  wrap.addEventListener('selectstart', (e) => e.preventDefault());
+
+  wrap.addEventListener('click', (e) => {
+    if (Date.now() < suppressClickUntil) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
+}
+
+function hideKeyboard() {
+  if (document.activeElement === input) {
+    input.blur();
+  }
+}
+
+messagesEl.addEventListener('touchstart', hideKeyboard, { passive: true });
+messagesEl.addEventListener('scroll', () => {
+  if (messagesEl.scrollTop < 60) {
+    loadOlderMessages();
+  }
+});
+  
+messagesEl.addEventListener('click', hideKeyboard);
+
+document.addEventListener('pointerdown', (e) => {
+  if (document.activeElement !== input) return;
+  if (e.target === input) return;
+  if (e.target.closest('.composer-shell')) return;
+  hideKeyboard();
+});
+
+function preventPageDragWhenTyping(e) {
+  if (document.activeElement !== input) return;
+  if (e.target.closest('.messages')) return;
+  e.preventDefault();
+}
+
+document.addEventListener('touchmove', preventPageDragWhenTyping, { passive: false });
+document.addEventListener('selectstart', (e) => {
+  if (
+    e.target.closest('.msg') ||
+    e.target.closest('.msg-wrap') ||
+    e.target.closest('.menu-overlay') ||
+    e.target.closest('.menu-sheet') ||
+    e.target.closest('.menu-btn') ||
+    e.target.closest('.attach-overlay') ||
+    e.target.closest('.attach-sheet') ||
+    e.target.closest('.attach-option')
+  ) {
+    e.preventDefault();
+  }
+});
+
+document.addEventListener('contextmenu', (e) => {
+  if (
+    e.target.closest('.msg') ||
+    e.target.closest('.msg-wrap') ||
+    e.target.closest('.menu-overlay') ||
+    e.target.closest('.menu-sheet') ||
+    e.target.closest('.menu-btn') ||
+    e.target.closest('.attach-overlay') ||
+    e.target.closest('.attach-sheet') ||
+    e.target.closest('.attach-option')
+  ) {
+    e.preventDefault();
+  }
+});
+
+attachBtn.addEventListener('click', () => {
+  if (isRecording) return;
+  hideKeyboard();
+  openAttachSheet();
+});
+
+attachOverlay.addEventListener('click', (e) => {
+  if (e.target === attachOverlay) {
+    closeAttachSheet();
+  }
+});
+
+document.querySelectorAll('.attach-option').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const kind = btn.dataset.kind;
+    closeAttachSheet();
+
+    if (kind === 'image') imagePicker.click();
+    if (kind === 'video') videoPicker.click();
+    if (kind === 'file') filePicker.click();
+    if (kind === 'audio') audioPicker.click();
+  });
+});
+
+imagePicker.addEventListener('change', () => {
+  handlePickedFile(imagePicker.files?.[0]);
+  imagePicker.value = '';
+});
+
+videoPicker.addEventListener('change', () => {
+  handlePickedFile(videoPicker.files?.[0]);
+  videoPicker.value = '';
+});
+
+filePicker.addEventListener('change', () => {
+  handlePickedFile(filePicker.files?.[0]);
+  filePicker.value = '';
+});
+
+audioPicker.addEventListener('change', () => {
+  handlePickedFile(audioPicker.files?.[0]);
+  audioPicker.value = '';
+});
+  
+sendBtn.addEventListener('click', () => {
+  const mode = sendBtn.dataset.mode;
+
+  if (mode === 'send') {
+    sendMessage();
+    return;
+  }
+
+  if (mode === 'stop') {
+    stopRecording();
+    return;
+  }
+
+  startRecording();
+});
+
+input.addEventListener('input', () => {
+  autoGrowTextarea();
+  updateComposerActionButton();
+});
+  
+input.addEventListener('focus', () => {
+  setTimeout(syncLayoutHeights, 60);
+  setTimeout(syncLayoutHeights, 220);
+});
+
+input.addEventListener('blur', () => {
+  setTimeout(syncLayoutHeights, 60);
+});
+
+menuOverlay.addEventListener('click', (e) => {
+  if (e.target === menuOverlay) closeMenu();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeMenu();
+    closeMediaViewer();
+  }
+});
+
+mediaViewerClose.addEventListener('click', closeMediaViewer);
+
+mediaViewer.addEventListener('click', (e) => {
+  if (e.target === mediaViewer || e.target === mediaViewerContent) {
+    closeMediaViewer();
+  }
+});
+logoutBtn.addEventListener('click', logout);
+refreshBtn.addEventListener('click', refreshChat);
+  
+// 🔒 يقفل عند مغادرة الصفحة أو فقدان التركيز
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    lockChat();
+  }
+});
+
+window.addEventListener('blur', () => {
+  lockChat();
+});
+
+window.addEventListener('pagehide', () => {
+  lockChat();
+});
+  
+document.querySelectorAll('[data-pin-key]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    submitPinDigit(btn.dataset.pinKey);
+  });
+});
+
+lockBackspace.addEventListener('click', () => {
+  if (!isChatLocked) return;
+  if (!enteredPin.length) return;
+
+  enteredPin = enteredPin.slice(0, -1);
+  updateLockDots();
+  clearLockError();
+});
+
+lockClear.addEventListener('click', () => {
+  if (!isChatLocked) return;
+
+  enteredPin = '';
+  updateLockDots();
+  clearLockError();
+});
+  
+window.addEventListener('resize', syncLayoutHeights);
+window.addEventListener('orientationchange', () => {
+  setTimeout(syncLayoutHeights, 80);
+});
+window.visualViewport?.addEventListener('resize', syncLayoutHeights);
+
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState !== 'visible') return;
+  if (!currentUserId) return;
+
+  await loadMessagesFromSupabase();
+
+  if (channelState !== 'subscribed') {
+    subscribeToMessages();
+  }
+});
+
+window.addEventListener('focus', async () => {
+  if (!currentUserId) return;
+
+  await loadMessagesFromSupabase();
+
+  if (channelState !== 'subscribed') {
+    subscribeToMessages();
+  }
+});
+
+async function logout() {
+  const ok = confirm('هل تريد تسجيل الخروج؟');
+  if (!ok) return;
+
+  const { error } = await sb.auth.signOut();
+
+  if (error) {
+    console.error('Logout error:', error);
+    alert(error.message || 'فشل تسجيل الخروج');
+    return;
+  }
+
+  window.location.href = 'login.html';
+}
+
+async function checkSession() {
+  const { data: sessionData, error: sessionError } = await sb.auth.getSession();
+
+  if (sessionError) {
+    console.error('Session error:', sessionError);
+    return false;
+  }
+
+  const session = sessionData.session;
+  
+  if (!session || !session.user || !session.user.email) {
+    alert('الجلسة غير موجودة، ارجع لصفحة تسجيل الدخول ثم ادخل من جديد');
+    window.location.href = 'login.html';
+    return false;
+  }
+
+  currentUser = session.user;
+  currentUserId = session.user.id;
+
+  console.log('User OK:', currentUserId);
+  return true;
+}
+
+async function loadMessagesFromSupabase() {
+  const { data: rows, error } = await sb
+    .from('chat_messages')
+    .select(`
+      id,
+      user_id,
+      content,
+      sender_name,
+      attachment_path,
+      attachment_type,
+      reply_to_id,
+      created_at
+    `)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    console.error('Load messages error:', error);
+    return;
+  }
+
+  console.log('Messages from Supabase:', rows);
+  rows.reverse();
+
+  for (const row of rows) {
+    rememberReplyMessage(row);
+  }
+  
+  await hydrateMissingReplyTargets(rows);
+
+  if (rows.length > 0) {
+  oldestMessageTime = rows[0].created_at;
+}
+
+  const mapped = await Promise.all(
+    rows.map(async (row) => {
+      const msg = mapSupabaseRowToMessage(row);
+      return await hydrateMessageMedia(msg);
+    })
+  );
+
+  data.length = 0;
+  data.push(...mapped);
+
+  renderMessages();
+  messagesLoaded = true;
+}
+
+function scheduleRealtimeReconnect() {
+  if (reconnectTimer) return;
+
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+
+    if (!currentUserId) return;
+
+    if (channel) {
+      try {
+        sb.removeChannel(channel);
+      } catch (_) {}
+      channel = null;
+    }
+
+    subscribeToMessages();
+  }, 1500);
+}
+
+function subscribeToMessages() {
+  if (channel && channelState === 'subscribed') return;
+
+  if (channel) {
+    try {
+      sb.removeChannel(channel);
+    } catch (_) {}
+    channel = null;
+  }
+
+  channelState = 'joining';
+
+  channel = sb
+    .channel('chat_messages_realtime')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'chat_messages'
+      },
+      async (payload) => {
+        const row = payload.new;
+        if (!row) return;
+  
+        const exists = data.some(msg => String(msg.id) === String(row.id));
+        if (exists) return;
+  
+        const mapped = await hydrateMessageMedia(mapSupabaseRowToMessage(row));
+        data.push(mapped);
+        appendMessageToUI(mapped);
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'chat_messages'
+      },
+      (payload) => {
+        const row = payload.old;
+        if (!row) return;
+  
+        const idx = data.findIndex(msg => String(msg.id) === String(row.id));
+        if (idx !== -1) {
+          data.splice(idx, 1);
+        }
+  
+        removeMessageFromUI(row.id);
+  
+        if (replyingToId && String(replyingToId) === String(row.id)) {
+          clearReplyPreview();
+        }
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'chat_messages'
+      },
+      (payload) => {
+        const row = payload.new;
+        if (!row) return;
+  
+        updateMessageInData(row.id, row.content || '');
+        updateMessageInUI(row.id, row.content || '');
+      }
+    )
+    .subscribe((status) => {
+      channelState = String(status || '').toLowerCase();
+      console.log('Realtime status:', status);
+
+      if (
+        status === 'CHANNEL_ERROR' ||
+        status === 'TIMED_OUT' ||
+        status === 'CLOSED'
+      ) {
+        scheduleRealtimeReconnect();
+      }
+    });
+}
+
+async function softSyncMessages() {
+  if (!currentUserId) return;
+
+  const { data: rows, error } = await sb
+    .from('chat_messages')
+    .select(`
+      id,
+      user_id,
+      content,
+      sender_name,
+      attachment_path,
+      attachment_type,
+      reply_to_id,
+      created_at
+    `)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error || !rows) return;
+
+  rows.reverse();
+
+  for (const row of rows) {
+    rememberReplyMessage(row);
+  }
+
+  await hydrateMissingReplyTargets(rows);
+
+  const serverIds = new Set(rows.map(row => String(row.id)));
+
+  const currentLatestWindowIds = data
+    .slice(-50)
+    .map(msg => String(msg.id));
+
+  for (const msgId of currentLatestWindowIds) {
+    if (!serverIds.has(msgId)) {
+      const idx = data.findIndex(m => String(m.id) === msgId);
+      if (idx !== -1) {
+        data.splice(idx, 1);
+      }
+      removeMessageFromUI(msgId);
+
+      if (replyingToId && String(replyingToId) === msgId) {
+        clearReplyPreview();
+      }
+    }
+  }
+
+  for (const row of rows) {
+    const exists = data.some(msg => String(msg.id) === String(row.id));
+    if (exists) continue;
+
+    const mapped = await hydrateMessageMedia(mapSupabaseRowToMessage(row));
+    insertMessageInOrder(mapped);
+  }
+}
+async function loadOlderMessages() {
+  if (isLoadingOlder) return;
+  if (!oldestMessageTime) return;
+
+  isLoadingOlder = true;
+
+  const prevScrollHeight = messagesEl.scrollHeight;
+
+  const { data: rows, error } = await sb
+    .from('chat_messages')
+    .select('*')
+    .lt('created_at', oldestMessageTime)
+    .order('created_at', { ascending: false })
+    .limit(30);
+
+  if (error || !rows || rows.length === 0) {
+    isLoadingOlder = false;
+    return;
+  }
+
+  rows.reverse();
+
+  for (const row of rows) {
+    rememberReplyMessage(row);
+  }
+  
+  await hydrateMissingReplyTargets(rows);
+  
+  oldestMessageTime = rows[0].created_at;
+  
+  const fragment = document.createDocumentFragment();
+  const toPrepend = [];
+  
+  for (const row of rows) {
+    const exists = data.some(msg => String(msg.id) === String(row.id));
+    if (exists) continue;
+  
+    const mapped = await hydrateMessageMedia(mapSupabaseRowToMessage(row));
+    toPrepend.push(mapped);
+  
+    const wrap = document.createElement('div');
+    wrap.className = `msg-wrap ${mapped.mine ? 'me' : 'other'}`;
+    wrap.dataset.id = String(mapped.id);
+  
+    wrap.innerHTML = `
+      <div class="reply-hint">↩️</div>
+      <div class="msg ${mapped.mine ? 'me' : 'other'}">
+        ${renderReplySnippet(mapped)}
+        ${renderMessageContent(mapped)}
+        <div class="msg-meta">
+          <span>${escapeHtml(mapped.time)}</span>
+        </div>
+      </div>
+    `;
+  
+    bindInteractions(wrap, mapped);
+    fragment.appendChild(wrap);
+
+    const replyJumpEl = wrap.querySelector('[data-jump-to]');
+    if (replyJumpEl) {
+      replyJumpEl.style.cursor = 'pointer';
+      replyJumpEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        jumpToMessage(replyJumpEl.dataset.jumpTo);
+      });
+    }
+  }
+  
+  if (toPrepend.length > 0) {
+    data.unshift(...toPrepend);
+    messagesEl.prepend(fragment);
+  }
+
+  const newScrollHeight = messagesEl.scrollHeight;
+  messagesEl.scrollTop += (newScrollHeight - prevScrollHeight);
+
+  isLoadingOlder = false;
+}
+
+checkSession().then(async (ok) => {
+  if (!ok) return;
+  await loadMessagesFromSupabase();
+  subscribeToMessages();
+
+  setInterval(softSyncMessages, 6000);
+  
+});
+  
+autoGrowTextarea();
+updateComposerActionButton();
+syncLayoutHeights();
+lockChat();
+  
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
