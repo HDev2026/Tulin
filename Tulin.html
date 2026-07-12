@@ -1,0 +1,3696 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>   6   </title>
+
+<style>
+:root{
+  --bg:#0f172a;
+  --header:#1e293b;
+  --footer:#1e293b;
+  --mine:#065f46;
+  --other:#1f2937;
+  --border:#334155;
+  --text:#ffffff;
+  --muted:#cbd5e1;
+  --safe-top:env(safe-area-inset-top, 0px);
+  --safe-bottom:env(safe-area-inset-bottom, 0px);
+  --reply-accent:#86efac;
+  --header-total-h:72px;
+  --composer-total-h:88px;
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:var(--bg);
+  font-family:tahoma,sans-serif;
+  color:var(--text);
+  -webkit-text-size-adjust:100%;
+  overscroll-behavior:none;
+}
+
+body{
+  position:fixed;
+  inset:0;
+  touch-action:none;
+}
+
+button,
+input,
+textarea{
+  font-family:inherit;
+}
+
+.hidden{
+  display:none !important;
+}
+
+.app{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:
+    linear-gradient(rgba(15,23,42,.97), rgba(15,23,42,.97)),
+    radial-gradient(circle at top right, rgba(37,99,235,.18), transparent 30%);
+}
+
+/* header fixed */
+header{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:50;
+  background:var(--header);
+  border-bottom:1px solid var(--border);
+  padding-top:var(--safe-top);
+}
+
+.header-inner{
+  min-height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 14px;
+  font-size:18px;
+  font-weight:bold;
+}
+
+.header-action-btn{
+  position:absolute;
+  left:14px;
+  top:50%;
+  transform:translateY(-50%);
+  width:38px;
+  height:38px;
+  border:none;
+  border-radius:50%;
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  font-size:18px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* messages only scroll */
+.messages{
+  position:fixed;
+  top:var(--header-total-h);
+  left:0;
+  right:0;
+  bottom:var(--composer-total-h);
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:14px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  background:transparent;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+  overscroll-behavior-x:none;
+  touch-action:pan-y;
+}
+
+/* message wrappers */
+.msg-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  position:relative;
+  transition:transform .16s ease;
+  will-change:transform;
+}
+
+.msg-wrap.jump-highlight .msg{
+  outline:2px solid rgba(134,239,172,.95);
+  outline-offset:2px;
+}
+
+.msg-wrap.me{
+  align-items:flex-end;
+}
+
+.msg-wrap.other{
+  align-items:flex-start;
+}
+
+.reply-hint{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  opacity:0;
+  transition:opacity .12s ease;
+  font-size:18px;
+  pointer-events:none;
+}
+
+.msg-wrap.swiping .reply-hint{
+  opacity:1;
+}
+
+.msg-wrap.me .reply-hint{
+  right:-24px;
+}
+
+.msg-wrap.other .reply-hint{
+  left:-24px;
+}
+
+.msg{
+  max-width:80%;
+  padding:10px 12px 8px;
+  border-radius:16px;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  position:relative;
+  box-shadow:0 6px 14px rgba(0,0,0,.16);
+
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.msg.me{
+  background:var(--mine);
+  border-bottom-right-radius:6px;
+}
+
+.msg.other{
+  background:var(--other);
+  border-bottom-left-radius:6px;
+}
+
+.reply-box{
+  background:rgba(255,255,255,.11);
+  border-right:3px solid var(--reply-accent);
+  border-radius:10px;
+  padding:7px 9px;
+  margin-bottom:8px;
+  font-size:12px;
+  overflow:hidden;
+}
+
+.reply-name{
+  font-weight:bold;
+  margin-bottom:3px;
+}
+
+.reply-text{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  opacity:.95;
+}
+
+.msg-text{
+  white-space:pre-wrap;
+  line-height:1.45;
+  font-size:15px;
+  
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.msg-meta{
+  margin-top:6px;
+  display:flex;
+  justify-content:flex-end;
+  gap:6px;
+  font-size:11px;
+  color:rgba(255,255,255,.82);
+}
+
+.msg-media{
+  padding:4px 2px 2px;
+}
+.msg-media-wrap{
+  position:relative;
+  display:inline-block;
+}
+
+.media-expand-btn{
+  position:absolute;
+  top:8px;
+  left:8px;
+  width:34px;
+  height:34px;
+  border:none;
+  border-radius:50%;
+  background:rgba(0,0,0,.5);
+  color:#fff;
+  font-size:18px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  z-index:5;
+}
+.msg-image{
+  max-width:220px;
+  border-radius:10px;
+  display:block;
+  -webkit-user-drag:none;
+  user-select:none;
+}
+
+.msg-video{
+  max-width:220px;
+  border-radius:10px;
+  display:block;
+}
+
+.msg-audio{
+  width:220px;
+}
+
+.msg-file{
+  font-size:14px;
+}
+
+.msg-file a{
+  color:inherit;
+  text-decoration:none;
+  cursor:pointer;
+}
+
+.msg-file a:hover{
+  text-decoration:underline;
+}
+
+
+.msg-status{
+  font-size:11px;
+  color:#94a3b8;
+  margin-top:4px;
+}
+  
+/* composer fixed */
+.composer-shell{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:50;
+  background:var(--footer);
+  border-top:1px solid var(--border);
+  padding-bottom:var(--safe-bottom);
+}
+
+.reply-preview{
+  padding:8px 10px 0;
+}
+.attachment-preview{
+  padding:8px 10px 0;
+}
+
+.recording-preview{
+  padding:8px 10px 0;
+}
+
+.recording-preview-box{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  background:#111827;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  padding:10px 12px;
+}
+
+.recording-preview-main{
+  min-width:0;
+  flex:1;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.recording-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#ef4444;
+  flex:0 0 10px;
+  animation:recordPulse 1s infinite;
+}
+
+.recording-label{
+  font-size:13px;
+  font-weight:bold;
+  color:#fff;
+  white-space:nowrap;
+}
+
+.recording-time{
+  font-size:13px;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+.recording-cancel{
+  background:transparent;
+  border:none;
+  color:#fff;
+  font-size:18px;
+  line-height:1;
+  cursor:pointer;
+  padding:0;
+}
+
+@keyframes recordPulse{
+  0%{ opacity:1; }
+  50%{ opacity:.45; }
+  100%{ opacity:1; }
+}
+
+.attachment-preview-box{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  background:#111827;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  padding:10px 12px;
+}
+
+.attachment-preview-main{
+  min-width:0;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.attachment-preview-title{
+  font-size:12px;
+  font-weight:bold;
+  color:var(--muted);
+}
+
+.attachment-preview-meta{
+  font-size:13px;
+  color:#fff;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.attachment-preview-close{
+  background:transparent;
+  border:none;
+  color:#fff;
+  font-size:18px;
+  line-height:1;
+  cursor:pointer;
+  padding:0;
+}
+
+.attachment-preview-thumb{
+  max-width:120px;
+  max-height:90px;
+  border-radius:10px;
+  display:block;
+  object-fit:cover;
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.attachment-preview-video{
+  width:160px;
+  max-width:100%;
+  max-height:120px;
+  border-radius:10px;
+  display:block;
+  background:#000;
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.attachment-preview-audio{
+  width:220px;
+  max-width:100%;
+  display:block;
+}
+
+.reply-preview-box{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  background:#111827;
+  border:1px solid rgba(255,255,255,.07);
+  border-right:4px solid var(--reply-accent);
+  border-radius:12px;
+  padding:10px 12px;
+}
+
+.reply-preview-main{
+  min-width:0;
+  flex:1;
+}
+
+.reply-preview-title{
+  font-size:12px;
+  font-weight:bold;
+  margin-bottom:4px;
+}
+
+.reply-preview-text{
+  font-size:12px;
+  color:var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.media-viewer{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.88);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:2000;
+}
+
+.media-viewer-content{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:100%;
+}
+
+.media-viewer-image,
+.media-viewer-video{
+  max-width:95vw;
+  max-height:90vh;
+  border-radius:14px;
+  display:block;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+
+.media-viewer-close{
+  position:absolute;
+  top:max(18px, env(safe-area-inset-top, 0px));
+  right:18px;
+  width:44px;
+  height:44px;
+  border:none;
+  border-radius:50%;
+  background:rgba(255,255,255,.14);
+  color:#fff;
+  font-size:28px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  z-index:2100;
+}
+
+.msg-media + .msg-text,
+.msg-file + .msg-text{
+  margin-top:6px;
+}
+  
+.reply-close{
+  background:transparent;
+  border:none;
+  color:#fff;
+  font-size:18px;
+  line-height:1;
+  cursor:pointer;
+  padding:0;
+}
+
+footer{
+  min-height:76px;
+  display:flex;
+  gap:8px;
+  padding:10px;
+  background:var(--footer);
+  align-items:flex-end;
+  flex-wrap:nowrap;
+  min-width:0;
+  width:100%;
+  max-width:100%;
+  overflow:hidden;
+}
+  
+textarea{
+  flex:1;
+  min-width:0;
+  min-height:48px;
+  max-height:96px;
+  border:none;
+  outline:none;
+  border-radius:14px;
+  padding:12px 14px;
+  font-size:16px;
+  background:#fff;
+  color:#111827;
+  resize:none;
+  overflow-y:auto;
+  line-height:1.45;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+button.send-btn{
+  flex:0 0 auto;
+  width:48px;
+  min-width:48px;
+  height:48px;
+  border:none;
+  border-radius:50%;
+  background:#065f46;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  padding:0;
+}
+
+button.send-btn svg{
+  width:22px;
+  height:22px;
+  display:block;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.attach-btn{
+  flex:0 0 auto;
+  width:48px;
+  height:48px;
+  border:none;
+  border-radius:50%;
+  background:#111827;
+  color:#fff;
+  font-size:28px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+.attach-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.58);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  padding:16px;
+  z-index:1100;
+}
+
+.attach-sheet{
+  width:min(260px, calc(100% - 40px));
+  background:#111827;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
+}
+
+.attach-head{
+  display:none;
+}
+
+.attach-option{
+  width:100%;
+  background:transparent;
+  border:none;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:8px;
+  text-align:right;
+  padding:11px 12px;
+  font-size:14px;
+  cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  flex-direction:row-reverse;
+}
+
+.attach-option:last-child{
+  border-bottom:none;
+}
+
+.attach-option-icon{
+  width:18px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+}
+
+.attach-option-text{
+  white-space:nowrap;
+}
+
+@media (max-width:420px){
+  .attach-btn{
+    width:46px;
+    height:46px;
+    font-size:26px;
+  }
+}
+
+/* menu */
+.menu-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  z-index:1000;
+
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+
+.menu-center{
+  width:min(260px, calc(100% - 40px));
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-inline:auto;
+}
+  
+.menu-message-preview{
+  display:flex;
+  justify-content:flex-end;
+  width:100%;
+  pointer-events:none;
+}
+
+.menu-message-preview .preview-bubble{
+  max-width:74%;
+  max-height:170px;
+  padding:9px 11px 8px;
+  border-radius:15px;
+  box-shadow:0 10px 24px rgba(0,0,0,.28);
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  overflow-y:auto;
+}
+
+.menu-message-preview .preview-bubble.me{
+  background:var(--mine);
+  border-bottom-right-radius:6px;
+}
+
+.menu-message-preview .preview-bubble.other{
+  background:var(--other);
+  border-bottom-left-radius:6px;
+}
+
+.menu-message-preview .preview-text{
+  white-space:pre-wrap;
+  line-height:1.45;
+  font-size:15px;
+
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+
+.menu-message-preview .preview-meta{
+  margin-top:6px;
+  display:flex;
+  justify-content:flex-end;
+  font-size:11px;
+  color:rgba(255,255,255,.82);
+}
+
+.menu-sheet{
+  width:100%;
+  background:#111827;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
+
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+
+.menu-head{
+  display:none;
+}
+  
+.menu-btn{
+  width:100%;
+  background:transparent;
+  border:none;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  text-align:right;
+  padding:13px 18px;
+  font-size:14px;
+  cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,.06);
+
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+
+.menu-btn-label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+
+.menu-btn-icon{
+  width:16px;
+  height:16px;
+  flex:0 0 16px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  opacity:.95;
+}
+
+.menu-btn-icon svg{
+  width:18px;
+  height:18px;
+  display:block;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.menu-btn-text{
+  white-space:nowrap;
+}
+
+.menu-btn:last-child{
+  border-bottom:none;
+}
+
+.menu-btn.danger{
+  color:#fca5a5;
+}
+@media (max-width:420px){
+  .header-inner{
+    min-height:54px;
+    font-size:17px;
+  }
+
+  .msg{
+    max-width:86%;
+  }
+
+  textarea{
+    min-height:46px;
+  }  
+
+  .send-btn{
+    width:46px;
+    min-width:46px;
+    height:46px;
+  }
+  .messages{
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+.lock-screen{
+  position:fixed;
+  inset:0;
+  z-index:5000;
+  background:linear-gradient(rgba(15,23,42,.98), rgba(15,23,42,.98));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.lock-screen.hidden{
+  display:none !important;
+}
+
+.lock-card{
+  width:min(360px, 100%);
+  background:#111827;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;
+  padding:22px 18px;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+  text-align:center;
+}
+
+.lock-title{
+  font-size:22px;
+  font-weight:bold;
+  margin-bottom:8px;
+}
+
+.lock-subtitle{
+  font-size:14px;
+  color:var(--muted);
+  margin-bottom:18px;
+}
+
+.lock-dots{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.lock-dot{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,.35);
+  background:transparent;
+}
+
+.lock-dot.filled{
+  background:#fff;
+  border-color:#fff;
+}
+
+.lock-error{
+  min-height:22px;
+  font-size:13px;
+  color:#fca5a5;
+  margin-bottom:10px;
+}
+
+.lock-pad{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:10px;
+  margin-top:8px;
+}
+
+.lock-key{
+  height:58px;
+  border:none;
+  border-radius:14px;
+  background:#1f2937;
+  color:#fff;
+  font-size:22px;
+  cursor:pointer;
+}
+
+.lock-key-action{
+  font-size:18px;
+}
+  
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header id="chatHeader">
+    <div class="header-inner">
+      <button id="settingsBtn" class="header-action-btn" style="left:14px" type="button" aria-label="الإعدادات">⚙️</button>
+      <button id="refreshBtn" class="header-action-btn" style="left:56px" type="button" aria-label="تحديث">↻</button>
+      <button id="logoutBtn" class="header-action-btn" style="left:98px" type="button" aria-label="تسجيل الخروج">⎋</button>
+      <span>🤍</span>
+    </div>
+  </header>
+
+  <div class="messages" id="messages"></div>
+
+  <div class="composer-shell" id="composerShell">
+    <div class="reply-preview hidden" id="replyPreview"></div>
+    <div class="attachment-preview hidden" id="attachmentPreview"></div>
+    <div class="recording-preview hidden" id="recordingPreview"></div>
+
+    <footer>
+      <input id="imagePicker" type="file" accept="image/*" class="hidden" />
+      <input id="videoPicker" type="file" accept="video/*" class="hidden" />
+      <input id="filePicker" type="file" class="hidden" />
+      <input id="audioPicker" type="file" accept="audio/*" class="hidden" />
+    
+      <button class="attach-btn" id="attachBtn" type="button" aria-label="إضافة مرفق">+</button>
+      <textarea id="text" placeholder="اكتب رسالة..." rows="1"></textarea>
+      <button class="send-btn" id="sendBtn" type="button" aria-label="إرسال أو تسجيل صوت"></button>
+    </footer>
+  </div>
+</div>
+
+<div class="menu-overlay" id="menuOverlay">
+  <div class="menu-center">
+    <div class="menu-message-preview" id="menuMessagePreview"></div>
+
+    <div class="menu-sheet">
+      <div class="menu-head" id="menuHead">خيارات الرسالة</div>
+      <div id="menuActions"></div>
+    </div>
+  </div>
+  </div>
+    <div class="attach-overlay" id="attachOverlay">
+    <div class="attach-sheet">
+      <div class="attach-head">إرسال مرفق</div>
+  
+      <button class="attach-option" type="button" data-kind="image">
+        <span class="attach-option-icon">🖼️</span>
+        <span class="attach-option-text">صورة</span>
+      </button>
+  
+      <button class="attach-option" type="button" data-kind="video">
+        <span class="attach-option-icon">🎥</span>
+        <span class="attach-option-text">فيديو</span>
+      </button>
+  
+      <button class="attach-option" type="button" data-kind="file">
+        <span class="attach-option-icon">📎</span>
+        <span class="attach-option-text">ملف</span>
+      </button>
+  
+      <button class="attach-option" type="button" data-kind="audio">
+        <span class="attach-option-icon">🎤</span>
+        <span class="attach-option-text">ملف صوت</span>
+      </button>
+    </div>
+  </div>
+  
+  <div class="media-viewer hidden" id="mediaViewer">
+    <button class="media-viewer-close" id="mediaViewerClose" type="button" aria-label="إغلاق">×</button>
+    <div class="media-viewer-content" id="mediaViewerContent"></div>
+  </div>
+    <div class="lock-screen" id="lockScreen">
+    <div class="lock-card">
+      <div class="lock-title">........</div>
+      <div class="lock-subtitle"></div>
+
+      <div class="lock-dots" id="lockDots">
+        <span class="lock-dot"></span>
+        <span class="lock-dot"></span>
+        <span class="lock-dot"></span>
+        <span class="lock-dot"></span>
+      </div>
+
+      <div class="lock-error hidden" id="lockError">الرقم غير صحيح</div>
+
+      <div class="lock-pad">
+        <button type="button" class="lock-key" data-pin-key="1">1</button>
+        <button type="button" class="lock-key" data-pin-key="2">2</button>
+        <button type="button" class="lock-key" data-pin-key="3">3</button>
+        <button type="button" class="lock-key" data-pin-key="4">4</button>
+        <button type="button" class="lock-key" data-pin-key="5">5</button>
+        <button type="button" class="lock-key" data-pin-key="6">6</button>
+        <button type="button" class="lock-key" data-pin-key="7">7</button>
+        <button type="button" class="lock-key" data-pin-key="8">8</button>
+        <button type="button" class="lock-key" data-pin-key="9">9</button>
+        <button type="button" class="lock-key lock-key-action" id="lockBackspace">⌫</button>
+        <button type="button" class="lock-key" data-pin-key="0">0</button>
+        <button type="button" class="lock-key lock-key-action" id="lockClear">C</button>
+      </div>
+    </div>
+  </div>
+  <div class="menu-overlay hidden" id="settingsOverlay">
+  <div class="menu-center">
+    <div class="menu-sheet">
+      <div class="menu-head" style="display:block">الإعدادات</div>
+      <div style="padding:14px 16px; display:flex; flex-direction:column; gap:14px;">
+        <label style="display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:14px; color:#fff;">
+          <span>إلغاء القفل التلقائي</span>
+          <input id="disableAutoLockToggle" type="checkbox" style="width:18px; height:18px; cursor:pointer;">
+        </label>
+
+        <div style="font-size:12px; color:var(--muted); line-height:1.7;">
+        </div>
+
+        <button id="closeSettingsBtn" class="menu-btn" type="button">
+          <span class="menu-btn-label">
+            <span class="menu-btn-text">إغلاق</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://vbwtsnxrshgjqmbgtagw.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_esJOtB6hRNf48Uo61txcyg_9F3yolJO';
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const root = document.documentElement;
+const headerEl = document.getElementById('chatHeader');
+const logoutBtn = document.getElementById('logoutBtn');
+const refreshBtn = document.getElementById('refreshBtn');
+
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsOverlay = document.getElementById('settingsOverlay');
+const disableAutoLockToggle = document.getElementById('disableAutoLockToggle');
+const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+  
+const composerShell = document.getElementById('composerShell');
+const messagesEl = document.getElementById('messages');
+const imagePicker = document.getElementById('imagePicker');
+const videoPicker = document.getElementById('videoPicker');
+const filePicker = document.getElementById('filePicker');
+const audioPicker = document.getElementById('audioPicker');
+const attachBtn = document.getElementById('attachBtn');
+const input = document.getElementById('text');
+const sendBtn = document.getElementById('sendBtn');
+const replyPreview = document.getElementById('replyPreview');
+const attachmentPreview = document.getElementById('attachmentPreview');
+const recordingPreview = document.getElementById('recordingPreview');
+const menuOverlay = document.getElementById('menuOverlay');
+const menuHead = document.getElementById('menuHead');
+const menuActions = document.getElementById('menuActions');
+const menuMessagePreview = document.getElementById('menuMessagePreview');
+const attachOverlay = document.getElementById('attachOverlay');
+const mediaViewer = document.getElementById('mediaViewer');
+const mediaViewerContent = document.getElementById('mediaViewerContent');
+const mediaViewerClose = document.getElementById('mediaViewerClose');
+const lockScreen = document.getElementById('lockScreen');
+const lockDots = document.getElementById('lockDots');
+const lockError = document.getElementById('lockError');
+const lockBackspace = document.getElementById('lockBackspace');
+const lockClear = document.getElementById('lockClear');
+
+let currentUser = null;
+let currentUserId = null;
+let channel = null;
+
+const CHAT_PIN = '2580';
+let enteredPin = '';
+let isChatLocked = true;
+
+const AUTO_LOCK_DISABLED_KEY = 'chat_auto_lock_disabled';
+
+let channelState = 'closed';
+let reconnectTimer = null;
+
+let messagesLoaded = false;
+let isSendingMessage = false;
+let oldestMessageTime = null;
+// Tracked alongside oldestMessageTime (set together, everywhere
+// oldestMessageTime is set) so pagination can use a compound
+// (created_at, id) keyset boundary instead of a created_at-only cutoff —
+// see loadOlderMessages, which needs this to avoid skipping/duplicating
+// rows that share the exact same created_at as the boundary row.
+let oldestMessageId = null;
+let isLoadingOlder = false;
+// True while a softSyncMessages() run is in progress. Prevents the next
+// 6-second interval tick from starting a second, overlapping sync — see
+// softSyncMessages, which checks and resets this via try/finally so a
+// failed/thrown sync can never leave future ticks permanently disabled.
+let softSyncInFlight = false;
+  
+let replyingToId = null;
+let editingId = null;
+let menuTargetId = null;
+let selectedAttachment = null;
+let selectedAttachmentUrl = '';
+let mediaRecorder = null;
+let mediaStream = null;
+let recordedChunks = [];
+let isRecording = false;
+let recordingTimer = null;
+let recordingSeconds = 0;
+let isCancellingRecording = false;
+  
+let longPressTimer = null;
+let pressStartX = 0;
+let pressStartY = 0;
+let isSwiping = false;
+let swipeTarget = null;
+let suppressClickUntil = 0;
+
+const SWIPE_REPLY_THRESHOLD = 72;
+const SWIPE_MAX = 90;
+const LONG_PRESS_MS = 380;
+const MOVE_CANCEL = 10;
+
+// بيانات محلية مؤقتة للاختبار فقط
+// سيتم استبدالها لاحقًا ببيانات Supabase
+const data = [];
+const replyCache = new Map();
+
+const signedUrlCache = new Map();
+
+function updateLockDots() {
+  const dots = lockDots.querySelectorAll('.lock-dot');
+  dots.forEach((dot, index) => {
+    dot.classList.toggle('filled', index < enteredPin.length);
+  });
+}
+
+function showLockError(message) {
+  lockError.textContent = message;
+  lockError.classList.remove('hidden');
+}
+
+function clearLockError() {
+  lockError.textContent = '';
+  lockError.classList.add('hidden');
+}
+
+function lockChat() {
+  isChatLocked = true;
+  enteredPin = '';
+  updateLockDots();
+  clearLockError();
+  lockScreen.classList.remove('hidden');
+}
+
+function unlockChat() {
+  isChatLocked = false;
+  enteredPin = '';
+  updateLockDots();
+  clearLockError();
+  lockScreen.classList.add('hidden');
+}
+
+function isAutoLockDisabled() {
+  return localStorage.getItem(AUTO_LOCK_DISABLED_KEY) === 'true';
+}
+
+function openSettings() {
+  disableAutoLockToggle.checked = isAutoLockDisabled();
+  settingsOverlay.classList.remove('hidden');
+  settingsOverlay.style.display = 'flex';
+}
+
+function closeSettings() {
+  settingsOverlay.classList.add('hidden');
+  settingsOverlay.style.display = 'none';
+}
+
+function saveAutoLockSetting() {
+  localStorage.setItem(
+    AUTO_LOCK_DISABLED_KEY,
+    disableAutoLockToggle.checked ? 'true' : 'false'
+  );
+}
+  
+async function refreshChat() {
+  try {
+    await loadMessagesFromSupabase();
+  } catch (err) {
+    console.error('Refresh error:', err);
+  }
+}
+
+function submitPinDigit(digit) {
+  if (!isChatLocked) return;
+  if (enteredPin.length >= 4) return;
+
+  enteredPin += String(digit);
+  updateLockDots();
+  clearLockError();
+
+  if (enteredPin.length === 4) {
+    if (enteredPin === CHAT_PIN) {
+      unlockChat();
+    } else {
+      showLockError('الرقم غير صحيح');
+      if (navigator.vibrate) navigator.vibrate(100);
+      enteredPin = '';
+      setTimeout(() => {
+        updateLockDots();
+      }, 120);
+    }
+  }
+}
+  
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+// Media/attachment src and href values are NOT automatically safe just
+// because they're "a URL" — hydrateMessageMedia falls back to the raw,
+// un-hydrated attachment_path (a Storage object key, e.g.
+// "<user id>/<timestamp>-<random>.<ext>") if signed URL generation ever
+// fails, and that `ext` segment is derived from the original uploaded
+// file's name, which is fully attacker-controllable (a File object's
+// `.name` can be constructed with any string at all, including quote and
+// angle-bracket characters, regardless of what a native OS file picker
+// would normally allow). So every value placed into a src/href attribute
+// gets two independent defenses here: (1) a protocol allowlist — only
+// values that actually look like an https(s):// signed URL or a local
+// blob: preview URL are used at all, anything else (like a raw,
+// non-URL storage path) is treated as unusable rather than trusted, and
+// (2) HTML-attribute escaping on top of that, exactly like any other
+// dynamic value placed in an attribute — escaping a well-formed URL this
+// way is safe and standard (browsers decode HTML entities in attribute
+// values when parsing, so an escaped "&" in a query string still works
+// correctly as a literal "&" once parsed).
+function sanitizeMediaUrl(url) {
+  if (!url) return '';
+  if (!/^(https?:|blob:)/i.test(String(url))) return '';
+  return escapeHtml(url);
+}
+
+function getActionButtonIcon(mode) {
+  if (mode === 'send') {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M22 2L11 13"></path>
+        <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+      </svg>
+    `;
+  }
+
+  if (mode === 'stop') {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="7" y="7" width="10" height="10" rx="2"></rect>
+      </svg>
+    `;
+  }
+
+  return `
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"></path>
+      <path d="M19 11a7 7 0 0 1-14 0"></path>
+      <path d="M12 18v3"></path>
+      <path d="M8 21h8"></path>
+    </svg>
+  `;
+}
+
+function updateComposerActionButton() {
+
+  const hasText = input.value.trim().length > 0;
+  const hasAttachment = !!selectedAttachment;
+
+  let mode;
+
+  if (isRecording) {
+    mode = 'stop';
+  } else if (hasText || hasAttachment) {
+    mode = 'send';
+  } else {
+    mode = 'mic';
+  }
+
+  sendBtn.dataset.mode = mode;
+  sendBtn.innerHTML = getActionButtonIcon(mode);
+
+  if (mode === 'send') {
+    sendBtn.setAttribute('aria-label', 'إرسال الرسالة');
+  } else if (mode === 'stop') {
+    sendBtn.setAttribute('aria-label', 'إيقاف التسجيل');
+  } else {
+    sendBtn.setAttribute('aria-label', 'تسجيل صوت');
+  }
+}
+  
+function autoGrowTextarea() {
+  input.style.height = '48px';
+  const nextHeight = Math.min(input.scrollHeight, 96);
+  input.style.height = nextHeight + 'px';
+}
+  
+function syncLayoutHeights() {
+
+  const headerH = Math.ceil(headerEl.getBoundingClientRect().height);
+  const composerH = Math.ceil(composerShell.getBoundingClientRect().height);
+
+  root.style.setProperty('--header-total-h', `${headerH}px`);
+  root.style.setProperty('--composer-total-h', `${composerH}px`);
+}
+
+// String-safe on purpose: ids may be a real numeric/uuid id (as stored in
+// `data`) or a string read back off a DOM element's `dataset.id` (dataset
+// values are always strings) — comparing via String() means both call
+// styles resolve the same message correctly instead of silently failing
+// on a strict `===` type mismatch.
+function getMsgById(id) {
+  return data.find(m => String(m.id) === String(id)) || null;
+}
+
+// A message still has a "temp-..." id while it's optimistically shown but
+// not yet confirmed by the server (upload/insert in flight, or waiting on
+// Realtime/soft-sync to reconcile it with its real row). Editing or
+// deleting it before it has a real id would run a Supabase update/delete
+// against an id that can never match a row, so both actions are withheld
+// until the message is confirmed — this only affects the split-second a
+// message is still "sending".
+function isTempMessageId(id) {
+  return String(id).startsWith('temp-');
+}
+
+// Compares two message ids deterministically. Ids coming back from
+// Postgres are usually numeric (bigint) but supabase-js can return them as
+// either a JS number or a string depending on size/config, so this
+// compares numerically when both sides parse cleanly as numbers and falls
+// back to a plain string comparison otherwise (still fully deterministic,
+// just not guaranteed to match true insertion order for non-numeric ids).
+function compareMessageIds(idA, idB) {
+  const strA = String(idA);
+  const strB = String(idB);
+  const numA = Number(strA);
+  const numB = Number(strB);
+
+  if (!Number.isNaN(numA) && !Number.isNaN(numB)) {
+    return numA - numB;
+  }
+
+  if (strA === strB) return 0;
+  return strA < strB ? -1 : 1;
+}
+
+// The single canonical message ordering rule, used everywhere messages
+// are sorted or positioned (initial load, pagination, Realtime/soft-sync
+// insertion, and repositioning a message whose created_at shifted when an
+// optimistic entry was reconciled with its real server row): created_at
+// first, then id as a deterministic tie-breaker. A still-optimistic
+// temp-id message always sorts after any real message with the same
+// timestamp, since a temp message is, by definition, something that just
+// happened locally "now".
+function compareMessages(a, b) {
+  const timeA = new Date(a.createdAt).getTime();
+  const timeB = new Date(b.createdAt).getTime();
+
+  if (timeA !== timeB) return timeA - timeB;
+
+  const aIsTemp = isTempMessageId(a.id);
+  const bIsTemp = isTempMessageId(b.id);
+  if (aIsTemp !== bIsTemp) return aIsTemp ? 1 : -1;
+
+  return compareMessageIds(a.id, b.id);
+}
+
+// Moves (or leaves alone) `wrap` so it sits at the DOM position implied by
+// `data[insertIndex]` — i.e. immediately before whatever message is at
+// data[insertIndex + 1] (or at the end, if there is none). No-ops if the
+// element is already exactly there, so this never causes an unnecessary
+// reflow/scroll jump for the overwhelmingly common case where a message's
+// position didn't actually need to change.
+function ensureWrapDomPosition(wrap, insertIndex) {
+  const nextMsg = data[insertIndex + 1];
+  const desiredNextEl = nextMsg
+    ? messagesEl.querySelector(`.msg-wrap[data-id="${String(nextMsg.id)}"]`)
+    : null;
+
+  if (wrap.parentNode === messagesEl && wrap.nextElementSibling === desiredNextEl) {
+    return;
+  }
+
+  if (desiredNextEl) {
+    messagesEl.insertBefore(wrap, desiredNextEl);
+  } else {
+    messagesEl.appendChild(wrap);
+  }
+}
+
+function rememberReplyMessage(row) {
+  if (!row || !row.id) return;
+
+  replyCache.set(String(row.id), {
+    id: row.id,
+    mine: row.user_id === currentUserId,
+    text: row.content || ''
+  });
+}
+
+async function hydrateMissingReplyTargets(rows) {
+  const missingIds = [...new Set(
+    rows
+      .map(row => row.reply_to_id)
+      .filter(Boolean)
+      .filter(id => !getMsgById(id) && !replyCache.has(String(id)))
+  )];
+
+  if (missingIds.length === 0) return;
+
+  const { data: replyRows, error } = await sb
+    .from('chat_messages')
+    .select('id, user_id, content')
+    .in('id', missingIds);
+
+  if (error || !replyRows) return;
+
+  for (const row of replyRows) {
+    rememberReplyMessage(row);
+  }
+}
+  
+function buildReplyPreviewText(msg) {
+  if (!msg) return 'رسالة';
+  return msg.text?.trim() || 'رسالة';
+}
+
+function renderReplySnippet(msg) {
+  if (!msg.replyToId) return '';
+
+  const original =
+    getMsgById(msg.replyToId) ||
+    replyCache.get(String(msg.replyToId)) ||
+    null;
+
+  const name = original ? (original.mine ? 'أنت' : 'حبيبي') : 'رسالة';
+  const text = original ? buildReplyPreviewText(original) : 'رسالة';
+
+  return `
+    <div class="reply-box" data-jump-to="${escapeHtml(String(msg.replyToId))}">
+      <div class="reply-name">${escapeHtml(name)}</div>
+      <div class="reply-text">${escapeHtml(text)}</div>
+    </div>
+  `;
+}
+
+function renderMessageContent(msg) {
+  const textHtml = msg.text
+    ? `<div class="msg-text">${escapeHtml(msg.text)}</div>`
+    : '';
+
+  // 🔥 حالة الإرسال
+  let statusHtml = '';
+  if (msg.status === 'sending') {
+    statusHtml = `<div class="msg-status">⏳ جاري الإرسال...</div>`;
+  }
+
+  if (msg.type === 'image') {
+    const safeSrc = sanitizeMediaUrl(msg.file);
+    return `
+      <div class="msg-media">
+        <img src="${safeSrc}" class="msg-image" data-full-image="${safeSrc}">
+      </div>
+      ${textHtml}
+      ${statusHtml}
+    `;
+  }
+
+  if (msg.type === 'video') {
+    const safeSrc = sanitizeMediaUrl(msg.file);
+    return `
+      <div class="msg-media">
+        <div class="msg-media-wrap">
+          <button class="media-expand-btn" type="button" data-open-video="${safeSrc}" aria-label="تكبير الفيديو">⤢</button>
+          <video src="${safeSrc}" controls playsinline class="msg-video"></video>
+        </div>
+      </div>
+      ${textHtml}
+      ${statusHtml}
+    `;
+  }
+
+  if (msg.type === 'audio') {
+    const safeSrc = sanitizeMediaUrl(msg.file);
+    return `
+      <div class="msg-media">
+        <audio src="${safeSrc}" controls class="msg-audio"></audio>
+      </div>
+      ${textHtml}
+      ${statusHtml}
+    `;
+  }
+
+  if (msg.type === 'file') {
+    const fileLabel = escapeHtml(msg.fileName || 'ملف');
+    // Before the upload finishes, msg.file is a local blob: preview URL;
+    // afterward it's the signed Storage URL from hydrateMessageMedia — but
+    // if signed URL generation ever failed, hydrateMessageMedia falls back
+    // to the raw, un-hydrated attachment_path, which can contain
+    // attacker-controlled characters (see sanitizeMediaUrl above). Never
+    // assume "it's a URL" is enough on its own.
+    const safeHref = sanitizeMediaUrl(msg.file) || '#';
+
+    return `
+      <div class="msg-file">
+        <a href="${safeHref}" target="_blank" rel="noopener noreferrer" download="${fileLabel}">📎 ${fileLabel}</a>
+      </div>
+      ${textHtml}
+      ${statusHtml}
+    `;
+  }
+
+  return `
+    ${textHtml || `<div class="msg-text"></div>`}
+    ${statusHtml}
+  `;
+}
+  
+function renderMessages() {
+  messagesEl.innerHTML = '';
+
+  data.forEach(msg => {
+    const wrap = createMessageWrap(msg);
+    messagesEl.appendChild(wrap);
+    pinToBottomAfterMediaLoads(wrap);
+  });
+
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  requestAnimationFrame(syncLayoutHeights);
+}
+
+function pinToBottomAfterMediaLoads(container) {
+  const mediaEls = container.querySelectorAll('img, video');
+  if (!mediaEls.length) return;
+
+  const stickToBottom = () => {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    requestAnimationFrame(() => {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    });
+  };
+
+  mediaEls.forEach((el) => {
+    if (el.tagName === 'IMG') {
+      if (!el.complete) {
+        el.addEventListener('load', stickToBottom, { once: true });
+      }
+    }
+
+    if (el.tagName === 'VIDEO') {
+      if (el.readyState < 1) {
+        el.addEventListener('loadedmetadata', stickToBottom, { once: true });
+      }
+      if (el.readyState < 2) {
+        el.addEventListener('loadeddata', stickToBottom, { once: true });
+      }
+    }
+  });
+}
+
+// Shared message-wrap builder used by renderMessages, appendMessageToUI,
+// insertMessageInOrder, and Realtime/soft-sync reconciliation (upsertMessage).
+// Centralizing this in one place is what keeps the four call sites from
+// drifting apart and re-implementing (and re-binding) things differently.
+function buildMessageContentHtml(msg) {
+  return `
+    <div class="reply-hint">↩️</div>
+    <div class="msg ${msg.mine ? 'me' : 'other'}">
+      ${renderReplySnippet(msg)}
+      ${renderMessageContent(msg)}
+      <div class="msg-meta">
+        ${msg.edited ? '<span>(تم التعديل)</span>' : ''}
+        <span>${escapeHtml(msg.time)}</span>
+      </div>
+    </div>
+  `;
+}
+
+// Binds the inner, content-dependent click targets (reply-jump, image,
+// video). Safe to call repeatedly on the same wrap after its content is
+// rebuilt, since the old inner elements (and their listeners) are gone
+// once innerHTML is replaced. Deliberately does NOT touch wrap-level
+// gesture listeners (see bindInteractions) — those are bound exactly once,
+// only when the wrap element is first created.
+function bindMessageContentInteractions(wrap) {
+  const replyJumpEl = wrap.querySelector('[data-jump-to]');
+  if (replyJumpEl) {
+    replyJumpEl.style.cursor = 'pointer';
+    replyJumpEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      jumpToMessage(replyJumpEl.dataset.jumpTo);
+    });
+  }
+
+  const imageEl = wrap.querySelector('[data-full-image]');
+  if (imageEl) {
+    imageEl.addEventListener('click', () => {
+      openMediaViewer('image', imageEl.dataset.fullImage);
+    });
+  }
+
+  const openVideoBtn = wrap.querySelector('[data-open-video]');
+  if (openVideoBtn) {
+    openVideoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openMediaViewer('video', openVideoBtn.dataset.openVideo);
+    });
+  }
+}
+
+// Creates a brand-new wrap element for a message: content + gesture
+// bindings (once) + inner interaction bindings. Used whenever a message
+// doesn't already have a DOM node.
+function createMessageWrap(msg) {
+  const wrap = document.createElement('div');
+  wrap.className = `msg-wrap ${msg.mine ? 'me' : 'other'}`;
+  wrap.dataset.id = String(msg.id);
+
+  if (msg.clientId) {
+    wrap.dataset.clientId = String(msg.clientId);
+  }
+
+  wrap.innerHTML = buildMessageContentHtml(msg);
+
+  bindInteractions(wrap);
+  bindMessageContentInteractions(wrap);
+
+  return wrap;
+}
+
+// Refreshes an EXISTING wrap element's content in place (e.g. an optimistic
+// message reconciling with its real server row, or a message being edited).
+// The wrap element itself is reused, so its wrap-level gesture listeners
+// (bound once at creation) are left completely undisturbed; only the inner
+// content and its click targets are rebuilt.
+function refreshMessageWrapContent(wrap, msg) {
+  if (!wrap) return;
+
+  wrap.className = `msg-wrap ${msg.mine ? 'me' : 'other'}`;
+  wrap.dataset.id = String(msg.id);
+
+  if (msg.clientId) {
+    wrap.dataset.clientId = String(msg.clientId);
+  } else {
+    delete wrap.dataset.clientId;
+  }
+
+  wrap.innerHTML = buildMessageContentHtml(msg);
+  bindMessageContentInteractions(wrap);
+}
+
+function mapSupabaseRowToMessage(row) {
+  return {
+    id: row.id,
+    clientId: row.client_id || null,
+    mine: row.user_id === currentUserId,
+    text: row.content || '',
+    time: new Date(row.created_at).toLocaleTimeString('ar', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }),
+    createdAt: row.created_at,
+    replyToId: row.reply_to_id || null,
+    type: row.attachment_type || null,
+    file: row.attachment_path || '',
+    attachmentPath: row.attachment_path || '',
+    fileName: row.attachment_path ? row.attachment_path.split('/').pop() : ''
+  };
+}
+
+// Supabase signed URLs are only valid for this many seconds — must match
+// the value passed to createSignedUrl() below, since the cache's tracked
+// expiry is derived directly from it (single source of truth).
+const SIGNED_URL_TTL_SECONDS = 3600;
+// Regenerate a bit before the real expiry so a URL handed out right now is
+// very unlikely to expire while still being used (e.g. a slow image load).
+const SIGNED_URL_SAFETY_MARGIN_MS = 60 * 1000;
+
+async function createSignedAttachmentUrl(path) {
+  if (!path) return '';
+
+  const cached = signedUrlCache.get(path);
+  if (cached && cached.expiresAt - Date.now() > SIGNED_URL_SAFETY_MARGIN_MS) {
+    return cached.url;
+  }
+
+  const { data, error } = await sb
+    .storage
+    .from('chat')
+    .createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
+
+  if (error) {
+    console.error('Signed URL error:', error);
+    // A stale-but-not-yet-actually-expired cached URL is still better than
+    // nothing if regeneration failed (e.g. a transient network error).
+    return cached?.url || '';
+  }
+
+  const url = data?.signedUrl || '';
+  if (url) {
+    signedUrlCache.set(path, {
+      url,
+      expiresAt: Date.now() + SIGNED_URL_TTL_SECONDS * 1000
+    });
+  }
+
+  return url;
+}
+
+async function hydrateMessageMedia(msg) {
+  if (!msg || !msg.file || !msg.type) return msg;
+
+  // 'file' (generic attachment) needs a signed URL too, exactly like
+  // image/video/audio — otherwise it would upload fine but have no way to
+  // actually be opened/downloaded afterward.
+  if (msg.type === 'image' || msg.type === 'video' || msg.type === 'audio' || msg.type === 'file') {
+    const signedUrl = await createSignedAttachmentUrl(msg.file);
+    return {
+      ...msg,
+      file: signedUrl || msg.file
+    };
+  }
+
+  return msg;
+}
+  
+function appendMessageToUI(msg) {
+  const wrap = createMessageWrap(msg);
+  messagesEl.appendChild(wrap);
+  pinToBottomAfterMediaLoads(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function insertMessageInOrder(msg) {
+  const exists = data.some(m => String(m.id) === String(msg.id));
+  if (exists) return;
+
+  let insertIndex = data.findIndex(existing => compareMessages(existing, msg) > 0);
+  if (insertIndex === -1) insertIndex = data.length;
+
+  data.splice(insertIndex, 0, msg);
+
+  const wrap = createMessageWrap(msg);
+  ensureWrapDomPosition(wrap, insertIndex);
+}
+
+// Single mutation entry point for adding or reconciling a message into
+// `data` + the DOM. Used by both the Realtime INSERT handler and
+// softSyncMessages, so duplicate-detection (by real id AND by client_id
+// together) and DOM refresh behavior are enforced identically everywhere,
+// instead of being re-implemented slightly differently at each call site.
+function upsertMessage(msg) {
+  const rowClientId = msg.clientId || null;
+
+  // 1) Does this match a still-optimistic (temp-id) local message via
+  //    client_id? If so, reconcile it in place (same array index, same
+  //    DOM node) rather than adding a second bubble.
+  if (rowClientId) {
+    const optimisticIndex = data.findIndex(
+      existing =>
+        String(existing.id).startsWith('temp-') &&
+        existing.clientId &&
+        String(existing.clientId) === String(rowClientId)
+    );
+
+    if (optimisticIndex !== -1) {
+      const tempMsg = data[optimisticIndex];
+      const tempId = String(tempMsg.id);
+      const reconciled = { ...msg, status: undefined };
+
+      // Release the optimistic attachment preview's blob URL now that the
+      // real, server-hydrated message has taken its place.
+      if (tempMsg.file && String(tempMsg.file).startsWith('blob:')) {
+        try {
+          URL.revokeObjectURL(tempMsg.file);
+        } catch (_) {}
+      }
+
+      // The reconciled message's real created_at (server clock) can differ
+      // from the optimistic guess (client clock, set when it was first
+      // shown) — remove it from its old position and re-find where it
+      // belongs now, so `data`'s order stays correct even when that shift
+      // happens. In the overwhelmingly common case nothing actually moves.
+      data.splice(optimisticIndex, 1);
+      let insertIndex = data.findIndex(existing => compareMessages(existing, reconciled) > 0);
+      if (insertIndex === -1) insertIndex = data.length;
+      data.splice(insertIndex, 0, reconciled);
+
+      const tempEl = messagesEl.querySelector(`.msg-wrap[data-id="${tempId}"]`);
+
+      if (tempEl) {
+        refreshMessageWrapContent(tempEl, reconciled);
+        // Keep the DOM node's position in sync with `data`'s — a no-op
+        // unless the real timestamp actually put it somewhere else.
+        ensureWrapDomPosition(tempEl, insertIndex);
+        pinToBottomAfterMediaLoads(tempEl);
+      } else {
+        renderMessages();
+      }
+
+      return;
+    }
+  }
+
+  // 2) Already a confirmed real message (matched by id)? Refresh its data
+  //    and, only if something rendering-relevant actually changed, its
+  //    visible content — this is what lets an edit made on another device
+  //    show up here even if the Realtime UPDATE event for it was missed
+  //    and only the soft-sync fallback picked it up.
+  const existingIndex = data.findIndex(
+    existing => String(existing.id) === String(msg.id)
+  );
+
+  if (existingIndex !== -1) {
+    const previous = data[existingIndex];
+
+    // `msg.edited` is only ever explicitly set to `true` by a caller that
+    // authoritatively knows an edit happened (the Realtime UPDATE handler)
+    // — a plain soft-sync-sourced `msg` never carries that key at all, so
+    // comparing it directly (previous.edited !== msg.edited) would flag a
+    // false "changed" on every single soft-sync tick for any message
+    // that was ever edited (true !== undefined). Only treat it as a
+    // change signal when the incoming message actually asserts it.
+    const changed =
+      previous.text !== msg.text ||
+      previous.type !== msg.type ||
+      previous.file !== msg.file ||
+      previous.attachmentPath !== msg.attachmentPath ||
+      previous.replyToId !== msg.replyToId ||
+      (msg.edited === true && previous.edited !== true);
+
+    data[existingIndex] = {
+      ...previous,
+      ...msg,
+      status: undefined
+    };
+
+    if (changed) {
+      const existingEl = messagesEl.querySelector(
+        `.msg-wrap[data-id="${String(msg.id)}"]`
+      );
+      if (existingEl) {
+        refreshMessageWrapContent(existingEl, data[existingIndex]);
+      }
+    }
+
+    return;
+  }
+
+  // 3) Genuinely new message — insert at its correct chronological
+  //    position (safe/no-op if something else already inserted it in the
+  //    meantime, since insertMessageInOrder re-checks existence itself).
+  insertMessageInOrder(msg);
+}
+
+function removeMessageFromUI(messageId) {
+  const el = messagesEl.querySelector(`.msg-wrap[data-id="${String(messageId)}"]`);
+  if (el) {
+    el.remove();
+  }
+}
+
+function updateMessageInUI(messageId, newText) {
+  const wrap = messagesEl.querySelector(`.msg-wrap[data-id="${String(messageId)}"]`);
+  if (!wrap) return;
+
+  // By the time this runs, updateMessageInData() has already updated
+  // `data` with the new text and edited flag (both call sites call it
+  // first) — re-render the wrap's content from that authoritative source
+  // rather than surgically patching a `.msg-text` node, since a
+  // caption-less media message may not have one yet. `newText` itself is
+  // no longer needed here, but the parameter is kept so both existing
+  // call sites don't need to change.
+  const msg = data.find(m => String(m.id) === String(messageId));
+  if (!msg) return;
+
+  refreshMessageWrapContent(wrap, msg);
+}
+
+function updateMessageInData(messageId, newText) {
+  const msg = data.find(m => String(m.id) === String(messageId));
+  if (!msg) return;
+
+  msg.text = newText;
+  msg.edited = true;
+}
+
+function clearReplyPreview() {
+  replyingToId = null;
+  editingId = null;
+  replyPreview.classList.add('hidden');
+  replyPreview.innerHTML = '';
+  requestAnimationFrame(syncLayoutHeights);
+}
+
+function openReplyPreview(msgId) {
+  replyingToId = msgId;
+  editingId = null;
+
+  const msg = getMsgById(msgId);
+  const name = msg?.mine ? 'أنت' : 'حبيبي';
+  const text = buildReplyPreviewText(msg);
+
+  replyPreview.classList.remove('hidden');
+  replyPreview.innerHTML = `
+    <div class="reply-preview-box">
+      <div class="reply-preview-main">
+        <div class="reply-preview-title">رد على ${escapeHtml(name)}</div>
+        <div class="reply-preview-text">${escapeHtml(text)}</div>
+      </div>
+      <button class="reply-close" id="closeReplyBtn" type="button">×</button>
+    </div>
+  `;
+
+  document.getElementById('closeReplyBtn').addEventListener('click', clearReplyPreview);
+  requestAnimationFrame(syncLayoutHeights);
+  input.focus();
+}
+
+// Bounded so a reply pointing at a message old enough to require several
+// pagination fetches still resolves quickly, but a reply target that's
+// gone entirely (e.g. the original was deleted) can never spin forever.
+const JUMP_TO_MESSAGE_MAX_PAGE_ATTEMPTS = 5;
+
+async function jumpToMessage(messageId) {
+  if (!messageId) return;
+
+  let target = messagesEl.querySelector(`.msg-wrap[data-id="${String(messageId)}"]`);
+
+  // Not currently loaded — it may just be older history that hasn't been
+  // paged in yet. Page back (reusing the same loadOlderMessages() used by
+  // manual scroll-to-top, so this can't duplicate or corrupt history) a
+  // bounded number of times looking for it before giving up.
+  let attempts = 0;
+  while (!target && attempts < JUMP_TO_MESSAGE_MAX_PAGE_ATTEMPTS) {
+    const result = await loadOlderMessages();
+    attempts++;
+
+    if (!result || result.exhausted) break;
+
+    target = messagesEl.querySelector(`.msg-wrap[data-id="${String(messageId)}"]`);
+  }
+
+  if (!target) return;
+
+  target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  target.classList.add('jump-highlight');
+  setTimeout(() => {
+    target.classList.remove('jump-highlight');
+  }, 1400);
+}
+
+function getMenuIconSvg(type) {
+  if (type === 'copy') {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="9" y="9" width="10" height="10" rx="2"></rect>
+        <path d="M7 15H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1"></path>
+      </svg>
+    `;
+  }
+
+  if (type === 'edit') {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 20h9"></path>
+        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
+      </svg>
+    `;
+  }
+
+  if (type === 'delete') {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 6h18"></path>
+        <path d="M8 6V4h8v2"></path>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+        <path d="M10 11v6"></path>
+        <path d="M14 11v6"></path>
+      </svg>
+    `;
+  }
+
+  return '';
+}
+
+function openMenu(msg) {
+  menuTargetId = msg.id;
+  menuHead.textContent = msg.mine ? 'خيارات رسالتك' : 'خيارات الرسالة';
+  menuActions.innerHTML = '';
+
+  menuMessagePreview.innerHTML = `
+    <div class="preview-bubble ${msg.mine ? 'me' : 'other'}">
+      <div class="preview-text">${escapeHtml(msg.text || '')}</div>
+      <div class="preview-meta">${escapeHtml(msg.time || '')}</div>
+    </div>
+  `;
+
+  const actions = [
+    {
+      label: 'نسخ',
+      icon: 'copy',
+      action: () => copyMessage(msg.id)
+    }
+  ];
+
+  if (msg.mine && !isTempMessageId(msg.id)) {
+    actions.push(
+      {
+        label: 'تعديل',
+        icon: 'edit',
+        action: () => editMessage(msg.id)
+      },
+      {
+        label: 'حذف',
+        icon: 'delete',
+        action: () => deleteMessage(msg.id),
+        danger: true
+      }
+    );
+  }
+
+  actions.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = `menu-btn${item.danger ? ' danger' : ''}`;
+    btn.type = 'button';
+    btn.innerHTML = `
+      <span class="menu-btn-label">
+        <span class="menu-btn-icon">${getMenuIconSvg(item.icon)}</span>
+        <span class="menu-btn-text">${item.label}</span>
+      </span>
+    `;
+    btn.addEventListener('click', () => {
+      closeMenu();
+      item.action();
+    });
+    menuActions.appendChild(btn);
+  });
+
+  menuOverlay.style.display = 'flex';
+}
+function closeMenu() {
+  menuOverlay.style.display = 'none';
+  menuTargetId = null;
+  menuMessagePreview.innerHTML = '';
+}
+
+function openAttachSheet() {
+  attachOverlay.style.display = 'flex';
+}
+
+function closeAttachSheet() {
+  attachOverlay.style.display = 'none';
+}
+
+function openMediaViewer(type, src) {
+  if (!src) return;
+  // Defense in depth, same allowlist as sanitizeMediaUrl — src here comes
+  // from a data-full-image/data-open-video attribute that was already
+  // sanitized when written, but this function assigns directly via the
+  // DOM API below (never through an HTML string), which is what actually
+  // makes it safe regardless of what src turns out to be.
+  if (!/^(https?:|blob:)/i.test(src)) return;
+
+  mediaViewerContent.innerHTML = '';
+
+  if (type === 'video') {
+    const video = document.createElement('video');
+    video.className = 'media-viewer-video';
+    video.src = src;
+    video.controls = true;
+    video.autoplay = true;
+    video.playsInline = true;
+    mediaViewerContent.appendChild(video);
+  } else {
+    const img = document.createElement('img');
+    img.className = 'media-viewer-image';
+    img.src = src;
+    img.alt = 'عرض الوسائط';
+    mediaViewerContent.appendChild(img);
+  }
+
+  mediaViewer.classList.remove('hidden');
+}
+
+function closeMediaViewer() {
+  mediaViewerContent.innerHTML = '';
+  mediaViewer.classList.add('hidden');
+}
+
+function formatRecordingTime(totalSeconds) {
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function stopMediaTracks() {
+  if (mediaStream) {
+    mediaStream.getTracks().forEach(track => track.stop());
+    mediaStream = null;
+  }
+}
+
+function updateRecordingPreview() {
+  if (!isRecording) {
+    recordingPreview.classList.add('hidden');
+    recordingPreview.innerHTML = '';
+    requestAnimationFrame(syncLayoutHeights);
+    return;
+  }
+
+  recordingPreview.classList.remove('hidden');
+  recordingPreview.innerHTML = `
+    <div class="recording-preview-box">
+      <div class="recording-preview-main">
+        <span class="recording-dot"></span>
+        <span class="recording-label">جارٍ تسجيل الصوت</span>
+        <span class="recording-time">${formatRecordingTime(recordingSeconds)}</span>
+      </div>
+      <button class="recording-cancel" id="cancelRecordingBtn" type="button">×</button>
+    </div>
+  `;
+
+  document.getElementById('cancelRecordingBtn').addEventListener('click', cancelRecording);
+  requestAnimationFrame(syncLayoutHeights);
+}
+
+async function startRecording() {
+  if (selectedAttachment) {
+    clearSelectedAttachment();
+  }
+
+  if (editingId) {
+    return;
+  }
+
+  try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        let recordingMimeType = '';
+        
+        if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function') {
+          if (MediaRecorder.isTypeSupported('audio/mp4')) {
+            recordingMimeType = 'audio/mp4';
+          } else if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+            recordingMimeType = 'audio/webm;codecs=opus';
+          } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+            recordingMimeType = 'audio/webm';
+          } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+            recordingMimeType = 'audio/ogg;codecs=opus';
+          } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+            recordingMimeType = 'audio/ogg';
+          }
+        }
+        
+        mediaRecorder = recordingMimeType
+          ? new MediaRecorder(mediaStream, { mimeType: recordingMimeType })
+          : new MediaRecorder(mediaStream);
+        
+        recordedChunks = [];
+        recordingSeconds = 0;
+
+    mediaRecorder.addEventListener('dataavailable', (event) => {
+      if (event.data && event.data.size > 0) {
+        recordedChunks.push(event.data);
+      }
+    });
+
+    mediaRecorder.addEventListener('stop', () => {
+      const mimeType = mediaRecorder?.mimeType || 'audio/webm';
+    
+      if (isCancellingRecording) {
+        isCancellingRecording = false;
+        stopMediaTracks();
+        mediaRecorder = null;
+        recordedChunks = [];
+        updateComposerActionButton();
+        updateRecordingPreview();
+        return;
+      }
+    
+      let ext = 'webm';
+
+      if (mimeType.includes('mp4')) {
+        ext = 'm4a';
+      } else if (mimeType.includes('ogg')) {
+        ext = 'ogg';
+      } else if (mimeType.includes('webm')) {
+        ext = 'webm';
+      }
+
+      const audioBlob = new Blob(recordedChunks, { type: mimeType });
+      selectedAttachment = new File([audioBlob], `recording_${Date.now()}.${ext}`, { type: mimeType });
+    
+      updateAttachmentPreview();
+      stopMediaTracks();
+      mediaRecorder = null;
+      recordedChunks = [];
+      updateComposerActionButton();
+    });
+
+    mediaRecorder.start();
+    isRecording = true;
+    updateComposerActionButton();
+    updateRecordingPreview();
+
+    recordingTimer = setInterval(() => {
+      recordingSeconds += 1;
+      updateRecordingPreview();
+    }, 1000);
+  } catch (err) {
+    alert('تعذر الوصول إلى الميكروفون');
+    stopMediaTracks();
+  }
+}
+
+function stopRecording() {
+  if (!isRecording || !mediaRecorder) return;
+
+  isRecording = false;
+
+  if (recordingTimer) {
+    clearInterval(recordingTimer);
+    recordingTimer = null;
+  }
+
+  updateComposerActionButton();
+  updateRecordingPreview();
+  mediaRecorder.stop();
+}
+
+function cancelRecording() {
+  if (!isRecording) return;
+
+  isRecording = false;
+  isCancellingRecording = true;
+
+  if (recordingTimer) {
+    clearInterval(recordingTimer);
+    recordingTimer = null;
+  }
+
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+  } else {
+    isCancellingRecording = false;
+    stopMediaTracks();
+    mediaRecorder = null;
+    recordedChunks = [];
+  }
+
+  recordingSeconds = 0;
+  clearSelectedAttachment();
+  updateComposerActionButton();
+  updateRecordingPreview();
+}
+
+function clearSelectedAttachment() {
+  selectedAttachment = null;
+
+  if (selectedAttachmentUrl) {
+    URL.revokeObjectURL(selectedAttachmentUrl);
+    selectedAttachmentUrl = '';
+  }
+
+  attachmentPreview.classList.add('hidden');
+  attachmentPreview.innerHTML = '';
+
+  if (!isRecording) {
+    recordingPreview.classList.add('hidden');
+    recordingPreview.innerHTML = '';
+  }
+
+  updateComposerActionButton();
+  requestAnimationFrame(syncLayoutHeights);
+}
+
+function updateAttachmentPreview() {
+  if (!selectedAttachment) {
+    attachmentPreview.classList.add('hidden');
+    attachmentPreview.innerHTML = '';
+    requestAnimationFrame(syncLayoutHeights);
+    return;
+  }
+
+  if (selectedAttachmentUrl) {
+    URL.revokeObjectURL(selectedAttachmentUrl);
+    selectedAttachmentUrl = '';
+  }
+
+  const file = selectedAttachment;
+  const type = file.type || '';
+  let previewMedia = '';
+
+  if (type.startsWith('image/')) {
+    selectedAttachmentUrl = URL.createObjectURL(file);
+    previewMedia = `<img class="attachment-preview-thumb" src="${sanitizeMediaUrl(selectedAttachmentUrl)}" alt="معاينة صورة">`;
+  } else if (type.startsWith('video/')) {
+    selectedAttachmentUrl = URL.createObjectURL(file);
+    previewMedia = `<video class="attachment-preview-video" src="${sanitizeMediaUrl(selectedAttachmentUrl)}" controls playsinline preload="metadata"></video>`;
+  } else if (type.startsWith('audio/')) {
+    selectedAttachmentUrl = URL.createObjectURL(file);
+    previewMedia = `<audio class="attachment-preview-audio" src="${sanitizeMediaUrl(selectedAttachmentUrl)}" controls preload="metadata"></audio>`;
+  }
+  attachmentPreview.classList.remove('hidden');
+  attachmentPreview.innerHTML = `
+    <div class="attachment-preview-box">
+      <div class="attachment-preview-main">
+        <div class="attachment-preview-title">مرفق جاهز للإرسال</div>
+        ${previewMedia}
+        <div class="attachment-preview-meta">${escapeHtml(file.name)}</div>
+      </div>
+      <button class="attachment-preview-close" id="clearAttachmentBtn" type="button">×</button>
+    </div>
+  `;
+
+  document.getElementById('clearAttachmentBtn').addEventListener('click', clearSelectedAttachment);
+  requestAnimationFrame(syncLayoutHeights);
+}
+
+function handlePickedFile(file) {
+  if (!file) return;
+
+  if (isRecording) {
+    cancelRecording();
+  }
+
+  selectedAttachment = file;
+  updateAttachmentPreview();
+  updateComposerActionButton();
+}
+
+function getAttachmentTypeFromFile(file) {
+  if (!file) return null;
+
+  if (file.type.startsWith('image/')) return 'image';
+  if (file.type.startsWith('video/')) return 'video';
+  if (file.type.startsWith('audio/')) return 'audio';
+  return 'file';
+}
+
+async function uploadAttachment(file) {
+  if (!file) return null;
+
+  const ext = file.name.includes('.') ? file.name.split('.').pop().toLowerCase() : 'bin';
+
+  let contentType = file.type || '';
+
+  if (!contentType) {
+    if (ext === 'm4a') contentType = 'audio/mp4';
+    else if (ext === 'aac') contentType = 'audio/aac';
+    else if (ext === 'mp3') contentType = 'audio/mpeg';
+    else if (ext === 'ogg') contentType = 'audio/ogg';
+    else if (ext === 'webm') contentType = 'audio/webm';
+    else if (ext === 'mp4') contentType = 'video/mp4';
+    else if (ext === 'mov') contentType = 'video/quicktime';
+    else if (ext === 'jpg' || ext === 'jpeg') contentType = 'image/jpeg';
+    else if (ext === 'png') contentType = 'image/png';
+  }
+
+  const fileName = `${currentUserId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+  const { error } = await sb
+    .storage
+    .from('chat')
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return fileName;
+}
+
+async function copyMessage(id) {
+  const msg = getMsgById(id);
+  if (!msg) return;
+  try {
+    await navigator.clipboard.writeText(msg.text || '');
+  } catch {
+    alert('تعذر النسخ');
+  }
+}
+
+function editMessage(id) {
+  const msg = getMsgById(id);
+  if (!msg || !msg.mine || isTempMessageId(id)) return;
+
+  clearReplyPreview();
+  clearSelectedAttachment();
+
+  editingId = id;
+  input.value = msg.text || '';
+
+  replyPreview.classList.remove('hidden');
+  replyPreview.innerHTML = `
+    <div class="reply-preview-box">
+      <div class="reply-preview-main">
+        <div class="reply-preview-title">تعديل رسالتك</div>
+        <div class="reply-preview-text">${escapeHtml(msg.text || '')}</div>
+      </div>
+      <button class="reply-close" id="closeReplyBtn" type="button">×</button>
+    </div>
+  `;
+
+  document.getElementById('closeReplyBtn').addEventListener('click', () => {
+    clearReplyPreview();
+    input.value = '';
+    autoGrowTextarea();
+    updateComposerActionButton();
+  });
+
+  autoGrowTextarea();
+  updateComposerActionButton();
+  requestAnimationFrame(syncLayoutHeights);
+  input.focus();
+}
+
+async function deleteMessage(id) {
+  const idx = data.findIndex(m => String(m.id) === String(id));
+  if (idx === -1) return;
+
+  const msg = data[idx];
+  if (!msg || !msg.mine || isTempMessageId(id)) return;
+
+  if (!confirm('هل تريد حذف الرسالة؟')) return;
+
+  const attachmentPath = msg.attachmentPath || null;
+
+  const { error } = await sb
+    .from('chat_messages')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', currentUserId);
+
+  if (error) {
+    console.error('Delete error:', error);
+    alert(error.message || 'فشل حذف الرسالة');
+    return;
+  }
+
+  if (attachmentPath) {
+    console.log('Deleting storage path:', attachmentPath);
+
+    const { data: removedFiles, error: storageError } = await sb
+      .storage
+      .from('chat')
+      .remove([attachmentPath]);
+
+    console.log('Storage remove result:', removedFiles);
+
+    if (storageError) {
+      console.error('Storage delete error:', storageError);
+    }
+  }
+
+  data.splice(idx, 1);
+  removeMessageFromUI(id);
+
+  if (replyingToId && String(replyingToId) === String(id)) {
+    clearReplyPreview();
+  }
+
+  closeMenu();
+}
+
+
+async function sendMessage() {
+  const text = input.value.trim();
+
+  console.log('[send] clicked', {
+    textLength: text.length,
+    hasAttachment: !!selectedAttachment,
+    isSendingMessage,
+    disabled: sendBtn.disabled
+  });
+
+  if (isSendingMessage) {
+    console.log('[send] ignored (already sending)');
+    return;
+  }
+
+  if (!currentUserId) {
+    alert('الجلسة غير موجودة، سجل الدخول من جديد');
+    window.location.href = 'TulinLogin.html';
+    return;
+  }
+
+  if (!text && !selectedAttachment) return;
+
+  isSendingMessage = true;
+  sendBtn.disabled = true;
+  sendBtn.style.opacity = '0.5';
+  sendBtn.style.pointerEvents = 'none';
+
+  console.log('[send] locked');
+
+  const safetyTimeout = setTimeout(() => {
+    console.warn('[send] force unlock (timeout)');
+    isSendingMessage = false;
+    sendBtn.disabled = false;
+    sendBtn.style.opacity = '';
+    sendBtn.style.pointerEvents = '';
+    updateComposerActionButton();
+  }, 15000);
+
+  let optimisticId = null;
+  const replyToIdToSend = replyingToId || null;
+  let localPreviewUrl = '';
+  let clientId = null;
+
+  try {
+    if (editingId) {
+      console.log('[send] editing message');
+
+      const { error } = await sb
+        .from('chat_messages')
+        .update({ content: text })
+        .eq('id', editingId)
+        .eq('user_id', currentUserId);
+
+      if (error) {
+        console.error('[send] edit error:', error);
+        alert('فشل تعديل الرسالة');
+        return;
+      }
+
+      const msg = data.find(m => String(m.id) === String(editingId));
+      if (msg) {
+        msg.text = text;
+        msg.edited = true;
+      }
+
+      updateMessageInUI(editingId, text);
+      
+      clearReplyPreview();
+      input.value = '';
+      autoGrowTextarea();
+      updateComposerActionButton();
+      return;
+    }
+
+    let attachmentPath = null;
+    let attachmentType = null;
+
+    const fileToSend = selectedAttachment;
+
+    console.log('[send] fileToSend:', fileToSend ? {
+      name: fileToSend.name,
+      type: fileToSend.type,
+      size: fileToSend.size
+    } : null);
+
+    clientId = `client-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    if (fileToSend) {
+      attachmentType = getAttachmentTypeFromFile(fileToSend);
+
+      // Every attachment type getAttachmentTypeFromFile can return
+      // ('image', 'video', 'audio', or the 'file' fallback for anything
+      // else) is sent through the same pipeline: uploadAttachment already
+      // handles arbitrary file types, attachment_path/attachment_type
+      // already accept 'file' as a value, and renderMessageContent already
+      // has a dedicated 📎 file-name rendering branch for it.
+      localPreviewUrl = URL.createObjectURL(fileToSend);
+      optimisticId = `temp-${clientId}`;
+
+      const optimisticMsg = {
+        id: optimisticId,
+        clientId,
+        mine: true,
+        text,
+        time: new Date().toLocaleTimeString('ar', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        createdAt: new Date().toISOString(),
+        replyToId: replyToIdToSend,
+        type: attachmentType,
+        file: localPreviewUrl,
+        attachmentPath: '',
+        fileName: fileToSend.name || '',
+        status: 'sending'
+      };
+
+      console.log('[send] optimistic message created');
+
+      data.push(optimisticMsg);
+      appendMessageToUI(optimisticMsg);
+      
+      input.value = '';
+      autoGrowTextarea();
+      clearSelectedAttachment();
+      updateComposerActionButton();
+
+      console.log('[send] upload start');
+      attachmentPath = await uploadAttachment(fileToSend);
+      console.log('[send] upload done:', attachmentPath);
+    } else {
+      optimisticId = `temp-${clientId}`;
+
+      const optimisticMsg = {
+        id: optimisticId,
+        clientId,
+        mine: true,
+        text,
+        time: new Date().toLocaleTimeString('ar', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        createdAt: new Date().toISOString(),
+        replyToId: replyToIdToSend,
+        type: 'text',
+        file: '',
+        attachmentPath: '',
+        fileName: '',
+        status: 'sending'
+      };
+
+      console.log('[send] optimistic text message created');
+
+      data.push(optimisticMsg);
+      appendMessageToUI(optimisticMsg);
+
+      input.value = '';
+      autoGrowTextarea();
+      clearSelectedAttachment();
+      updateComposerActionButton();
+    }
+
+    console.log('[send] insert start');
+
+    const { data: insertedRow, error } = await sb
+      .from('chat_messages')
+      .insert([
+        {
+          user_id: currentUserId,
+          content: text,
+          reply_to_id: replyToIdToSend,
+          attachment_path: attachmentPath,
+          attachment_type: attachmentType,
+          client_id: clientId
+        }
+      ])
+      .select(`
+        id,
+        user_id,
+        content,
+        sender_name,
+        attachment_path,
+        attachment_type,
+        reply_to_id,
+        created_at,
+        client_id
+      `)
+      .single();
+
+    console.log('[send] insert done');
+
+    if (error) {
+      console.error('[send] insert error:', error);
+
+      if (optimisticId) {
+        const idx = data.findIndex(m => String(m.id) === String(optimisticId));
+        if (idx !== -1) data.splice(idx, 1);
+        removeMessageFromUI(optimisticId);
+      }
+
+      if (localPreviewUrl) {
+        URL.revokeObjectURL(localPreviewUrl);
+      }
+
+      // The Storage upload above (if any) already succeeded even though
+      // the row insert just failed — without this, the uploaded object
+      // would be orphaned in the bucket forever with no row referencing
+      // it. Best-effort cleanup only: any failure here is just logged and
+      // must never mask or block the user-facing failure alert below.
+      if (attachmentPath) {
+        try {
+          const { error: cleanupError } = await sb.storage.from('chat').remove([attachmentPath]);
+          if (cleanupError) {
+            console.error('[send] failed to clean up orphaned upload:', cleanupError);
+          }
+        } catch (cleanupErr) {
+          console.error('[send] failed to clean up orphaned upload:', cleanupErr);
+        }
+      }
+
+      alert('فشل إرسال الرسالة');
+      return;
+    }
+
+    // Reconcile immediately from the insert's own response instead of
+    // waiting solely on Realtime — the message must not sit in "sending"
+    // state just because Realtime is slow, disconnected, or never
+    // configured to deliver to this client for some reason. upsertMessage's
+    // id/client_id dedupe makes it completely safe if Realtime's INSERT
+    // event for this same row arrives before this point, after it, or not
+    // at all: whichever arrives first reconciles the optimistic message,
+    // and whichever arrives second finds it already confirmed (matched by
+    // real id) with nothing changed, so it's a harmless no-op.
+    if (insertedRow) {
+      console.log('[send] insert succeeded, reconciling immediately', insertedRow.client_id);
+      const mapped = await hydrateMessageMedia(mapSupabaseRowToMessage(insertedRow));
+      mapped.clientId = insertedRow.client_id || null;
+      upsertMessage(mapped);
+    }
+
+    clearReplyPreview();
+    updateComposerActionButton();
+
+  } catch (err) {
+    console.error('[send] unexpected error:', err);
+
+    if (optimisticId) {
+      const idx = data.findIndex(m => String(m.id) === String(optimisticId));
+      if (idx !== -1) data.splice(idx, 1);
+      removeMessageFromUI(optimisticId);
+    }
+
+    if (localPreviewUrl) {
+      URL.revokeObjectURL(localPreviewUrl);
+    }
+
+    alert('حدث خطأ غير متوقع أثناء الإرسال');
+
+  } finally {
+    clearTimeout(safetyTimeout);
+
+    isSendingMessage = false;
+    sendBtn.disabled = false;
+    sendBtn.style.opacity = '';
+    sendBtn.style.pointerEvents = '';
+    updateComposerActionButton();
+
+    console.log('[send] unlocked');
+  }
+}
+  
+function getPoint(e) {
+  if (e.touches?.length) {
+    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+  if (e.changedTouches?.length) {
+    return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+  }
+  return { x: e.clientX || 0, y: e.clientY || 0 };
+}
+
+function clearLongPress() {
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+}
+
+function resetSwipe(wrap) {
+  if (!wrap) return;
+  wrap.style.transform = 'translateX(0px)';
+  wrap.classList.remove('swiping');
+}
+
+function handleSwipeMove(e, wrap) {
+  if (!swipeTarget) return;
+
+  const point = getPoint(e);
+  const dx = point.x - pressStartX;
+  const dy = Math.abs(point.y - pressStartY);
+
+  if (dy > MOVE_CANCEL && !isSwiping) {
+    clearLongPress();
+    swipeTarget = null;
+    resetSwipe(wrap);
+    return;
+  }
+
+  if (dx > 0) {
+    isSwiping = true;
+    clearLongPress();
+    const move = Math.min(dx, SWIPE_MAX);
+    wrap.style.transform = `translateX(${move}px)`;
+    wrap.classList.add('swiping');
+  }
+}
+
+function handleSwipeEnd(wrap) {
+  clearLongPress();
+
+  const matrix = new DOMMatrixReadOnly(getComputedStyle(wrap).transform);
+  const movedX = matrix.m41 || 0;
+
+  if (movedX >= SWIPE_REPLY_THRESHOLD) {
+    // Resolve the CURRENT message fresh from the wrap's own dataset.id
+    // rather than a msg object captured once at bind time — a wrap
+    // element is reused across reconciliation (temp id -> real id) and
+    // edits, and bindInteractions is deliberately only ever called once
+    // per wrap (see createMessageWrap), so a captured msg would otherwise
+    // go stale (e.g. still pointing at a "temp-..." id, or old text) the
+    // moment the message it represents changes underneath it.
+    const currentMsg = getMsgById(wrap.dataset.id);
+    if (currentMsg) {
+      openReplyPreview(currentMsg.id);
+      if (navigator.vibrate) navigator.vibrate(20);
+    }
+  }
+
+  resetSwipe(wrap);
+  swipeTarget = null;
+  isSwiping = false;
+}
+
+// Bound exactly once per wrap element, at creation time (createMessageWrap)
+// — never re-bound on reconciliation/edit, so it deliberately does NOT
+// close over a `msg` object. Every action resolves the CURRENT message via
+// wrap.dataset.id at the moment the gesture actually completes, so it's
+// always correct even after the wrap's underlying message has been
+// reconciled from an optimistic temp id to its real server id, or edited.
+function bindInteractions(wrap) {
+  const start = (e) => {
+    const target = e.target;
+    if (target.closest('button') || target.closest('input') || target.closest('textarea')) return;
+
+    const p = getPoint(e);
+    pressStartX = p.x;
+    pressStartY = p.y;
+    swipeTarget = wrap;
+    isSwiping = false;
+
+    clearLongPress();
+    longPressTimer = setTimeout(() => {
+      suppressClickUntil = Date.now() + 600;
+      const currentMsg = getMsgById(wrap.dataset.id);
+      if (currentMsg) {
+        openMenu(currentMsg);
+        if (navigator.vibrate) navigator.vibrate(18);
+      }
+    }, LONG_PRESS_MS);
+  };
+
+  const move = (e) => handleSwipeMove(e, wrap);
+  const end = () => handleSwipeEnd(wrap);
+  const cancel = () => {
+    clearLongPress();
+    resetSwipe(wrap);
+    swipeTarget = null;
+    isSwiping = false;
+  };
+
+  wrap.addEventListener('touchstart', start, { passive: true });
+  wrap.addEventListener('touchmove', move, { passive: true });
+  wrap.addEventListener('touchend', end);
+  wrap.addEventListener('touchcancel', cancel);
+
+  wrap.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    start(e);
+  });
+  wrap.addEventListener('mousemove', move);
+  wrap.addEventListener('mouseup', end);
+  wrap.addEventListener('mouseleave', cancel);
+
+  wrap.addEventListener('contextmenu', (e) => e.preventDefault());
+  wrap.addEventListener('dragstart', (e) => e.preventDefault());
+  wrap.addEventListener('selectstart', (e) => e.preventDefault());
+
+  wrap.addEventListener('click', (e) => {
+    if (Date.now() < suppressClickUntil) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
+}
+
+function hideKeyboard() {
+  if (document.activeElement === input) {
+    input.blur();
+  }
+}
+
+messagesEl.addEventListener('touchstart', hideKeyboard, { passive: true });
+messagesEl.addEventListener('scroll', () => {
+  if (messagesEl.scrollTop < 60) {
+    loadOlderMessages();
+  }
+});
+  
+messagesEl.addEventListener('click', hideKeyboard);
+
+document.addEventListener('pointerdown', (e) => {
+  if (document.activeElement !== input) return;
+  if (e.target === input) return;
+  if (e.target.closest('.composer-shell')) return;
+  hideKeyboard();
+});
+
+function preventPageDragWhenTyping(e) {
+  if (document.activeElement !== input) return;
+  if (e.target.closest('.messages')) return;
+  e.preventDefault();
+}
+
+document.addEventListener('touchmove', preventPageDragWhenTyping, { passive: false });
+document.addEventListener('selectstart', (e) => {
+  if (
+    e.target.closest('.msg') ||
+    e.target.closest('.msg-wrap') ||
+    e.target.closest('.menu-overlay') ||
+    e.target.closest('.menu-sheet') ||
+    e.target.closest('.menu-btn') ||
+    e.target.closest('.attach-overlay') ||
+    e.target.closest('.attach-sheet') ||
+    e.target.closest('.attach-option')
+  ) {
+    e.preventDefault();
+  }
+});
+
+document.addEventListener('contextmenu', (e) => {
+  if (
+    e.target.closest('.msg') ||
+    e.target.closest('.msg-wrap') ||
+    e.target.closest('.menu-overlay') ||
+    e.target.closest('.menu-sheet') ||
+    e.target.closest('.menu-btn') ||
+    e.target.closest('.attach-overlay') ||
+    e.target.closest('.attach-sheet') ||
+    e.target.closest('.attach-option')
+  ) {
+    e.preventDefault();
+  }
+});
+
+attachBtn.addEventListener('click', () => {
+  if (isRecording) return;
+  hideKeyboard();
+  openAttachSheet();
+});
+
+attachOverlay.addEventListener('click', (e) => {
+  if (e.target === attachOverlay) {
+    closeAttachSheet();
+  }
+});
+
+document.querySelectorAll('.attach-option').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const kind = btn.dataset.kind;
+    closeAttachSheet();
+
+    if (kind === 'image') imagePicker.click();
+    if (kind === 'video') videoPicker.click();
+    if (kind === 'file') filePicker.click();
+    if (kind === 'audio') audioPicker.click();
+  });
+});
+
+imagePicker.addEventListener('change', () => {
+  handlePickedFile(imagePicker.files?.[0]);
+  imagePicker.value = '';
+});
+
+videoPicker.addEventListener('change', () => {
+  handlePickedFile(videoPicker.files?.[0]);
+  videoPicker.value = '';
+});
+
+filePicker.addEventListener('change', () => {
+  handlePickedFile(filePicker.files?.[0]);
+  filePicker.value = '';
+});
+
+audioPicker.addEventListener('change', () => {
+  handlePickedFile(audioPicker.files?.[0]);
+  audioPicker.value = '';
+});
+  
+sendBtn.addEventListener('click', () => {
+  const mode = sendBtn.dataset.mode;
+
+  if (mode === 'send') {
+    sendMessage();
+    return;
+  }
+
+  if (mode === 'stop') {
+    stopRecording();
+    return;
+  }
+
+  startRecording();
+});
+
+input.addEventListener('input', () => {
+  autoGrowTextarea();
+  updateComposerActionButton();
+});
+  
+input.addEventListener('focus', () => {
+  setTimeout(syncLayoutHeights, 60);
+  setTimeout(syncLayoutHeights, 220);
+});
+
+input.addEventListener('blur', () => {
+  setTimeout(syncLayoutHeights, 60);
+});
+
+menuOverlay.addEventListener('click', (e) => {
+  if (e.target === menuOverlay) closeMenu();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeMenu();
+    closeMediaViewer();
+  }
+});
+
+mediaViewerClose.addEventListener('click', closeMediaViewer);
+
+mediaViewer.addEventListener('click', (e) => {
+  if (e.target === mediaViewer || e.target === mediaViewerContent) {
+    closeMediaViewer();
+  }
+});
+logoutBtn.addEventListener('click', logout);
+refreshBtn.addEventListener('click', refreshChat);
+
+settingsBtn.addEventListener('click', openSettings);
+
+closeSettingsBtn.addEventListener('click', closeSettings);
+
+disableAutoLockToggle.addEventListener('change', saveAutoLockSetting);
+
+settingsOverlay.addEventListener('click', (e) => {
+  if (e.target === settingsOverlay) {
+    closeSettings();
+  }
+});
+  
+// 🔒 يقفل عند مغادرة الصفحة أو فقدان التركيز
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && !isAutoLockDisabled()) {
+    lockChat();
+  }
+});
+
+window.addEventListener('blur', () => {
+  if (!isAutoLockDisabled()) {
+    lockChat();
+  }
+});
+
+window.addEventListener('pagehide', () => {
+  if (!isAutoLockDisabled()) {
+    lockChat();
+  }
+});
+  
+document.querySelectorAll('[data-pin-key]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    submitPinDigit(btn.dataset.pinKey);
+  });
+});
+
+lockBackspace.addEventListener('click', () => {
+  if (!isChatLocked) return;
+  if (!enteredPin.length) return;
+
+  enteredPin = enteredPin.slice(0, -1);
+  updateLockDots();
+  clearLockError();
+});
+
+lockClear.addEventListener('click', () => {
+  if (!isChatLocked) return;
+
+  enteredPin = '';
+  updateLockDots();
+  clearLockError();
+});
+  
+window.addEventListener('resize', syncLayoutHeights);
+window.addEventListener('orientationchange', () => {
+  setTimeout(syncLayoutHeights, 80);
+});
+window.visualViewport?.addEventListener('resize', syncLayoutHeights);
+
+// `visibilitychange` and window `focus` frequently both fire within the
+// same tick when switching back to this tab — without this guard, each
+// independently kicks off its own loadMessagesFromSupabase() +
+// subscribeToMessages() decision. Routing both through the same in-flight
+// promise collapses that into a single reload/resubscribe per switch.
+let resumeSyncInFlight = null;
+
+async function resumeAfterForegroundOrFocus() {
+  if (!currentUserId) return;
+  if (isSendingMessage) return;
+
+  if (resumeSyncInFlight) {
+    return resumeSyncInFlight;
+  }
+
+  resumeSyncInFlight = (async () => {
+    try {
+      await loadMessagesFromSupabase();
+
+      if (channelState !== 'subscribed') {
+        subscribeToMessages();
+      }
+    } finally {
+      resumeSyncInFlight = null;
+    }
+  })();
+
+  return resumeSyncInFlight;
+}
+
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState !== 'visible') return;
+  await resumeAfterForegroundOrFocus();
+});
+
+window.addEventListener('focus', async () => {
+  await resumeAfterForegroundOrFocus();
+});
+
+async function logout() {
+  const ok = confirm('هل تريد تسجيل الخروج؟');
+  if (!ok) return;
+
+  const { error } = await sb.auth.signOut();
+
+  if (error) {
+    console.error('Logout error:', error);
+    alert(error.message || 'فشل تسجيل الخروج');
+    return;
+  }
+
+  window.location.href = 'TulinLogin.html';
+}
+
+async function checkSession() {
+  const { data: sessionData, error: sessionError } = await sb.auth.getSession();
+
+  if (sessionError) {
+    console.error('Session error:', sessionError);
+    return false;
+  }
+
+  const session = sessionData.session;
+  
+  if (!session || !session.user || !session.user.email) {
+    alert('الجلسة غير موجودة، ارجع لصفحة تسجيل الدخول ثم ادخل من جديد');
+    window.location.href = 'TulinLogin.html';
+    return false;
+  }
+
+  currentUser = session.user;
+  currentUserId = session.user.id;
+
+  console.log('User OK:', currentUserId);
+  return true;
+}
+
+async function loadMessagesFromSupabase() {
+  // Secondary sort by `id` makes the "latest 50" result deterministic and
+  // reproducible even when several rows share the exact same created_at —
+  // matching the created_at-first/id-tiebreak rule the client's own
+  // compareMessages() already applies (see that function's comment). No
+  // schema change: `id` already exists and is already the primary key.
+  const { data: rows, error } = await sb
+    .from('chat_messages')
+    .select(`
+      id,
+      user_id,
+      content,
+      sender_name,
+      attachment_path,
+      attachment_type,
+      reply_to_id,
+      created_at,
+      client_id
+    `)
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    console.error('Load messages error:', error);
+    return;
+  }
+
+  console.log('Messages from Supabase:', rows);
+  rows.reverse();
+
+  for (const row of rows) {
+    rememberReplyMessage(row);
+  }
+
+  await hydrateMissingReplyTargets(rows);
+
+  if (rows.length > 0) {
+    oldestMessageTime = rows[0].created_at;
+    oldestMessageId = rows[0].id;
+  }
+
+  const mapped = await Promise.all(
+    rows.map(async (row) => {
+      const msg = mapSupabaseRowToMessage(row);
+      const hydrated = await hydrateMessageMedia(msg);
+      hydrated.clientId = row.client_id || null;
+      return hydrated;
+    })
+  );
+
+  const currentOptimisticMessages = data.filter(msg =>
+    String(msg.id).startsWith('temp-')
+  );
+
+  const merged = [...mapped];
+
+  for (const tempMsg of currentOptimisticMessages) {
+    const hasServerMatch = mapped.some(serverMsg =>
+      (tempMsg.clientId && serverMsg.clientId &&
+        String(tempMsg.clientId) === String(serverMsg.clientId)) ||
+      String(tempMsg.id) === String(serverMsg.id)
+    );
+
+    if (!hasServerMatch) {
+      merged.push(tempMsg);
+    }
+  }
+
+  // Full rebuild follows immediately (renderMessages), so sorting the
+  // array alone is safe here — DOM order will exactly mirror this order
+  // once renderMessages() runs, unlike a sort with no rebuild after it.
+  merged.sort(compareMessages);
+
+  data.length = 0;
+  data.push(...merged);
+
+  renderMessages();
+  messagesLoaded = true;
+}
+
+function scheduleRealtimeReconnect() {
+  if (reconnectTimer) return;
+
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+
+    if (!currentUserId) return;
+
+    if (channel) {
+      try {
+        sb.removeChannel(channel);
+      } catch (_) {}
+      channel = null;
+    }
+
+    subscribeToMessages();
+  }, 1500);
+}
+
+function subscribeToMessages() {
+  if (channel && channelState === 'subscribed') return;
+
+  // A join is already underway (e.g. focus and visibilitychange both
+  // triggered a resume within the same tick) — let it finish instead of
+  // tearing down the in-progress channel and starting a second one.
+  if (channelState === 'joining') return;
+
+  if (channel) {
+    try {
+      sb.removeChannel(channel);
+    } catch (_) {}
+    channel = null;
+  }
+
+  channelState = 'joining';
+
+  channel = sb
+    .channel('chat_messages_realtime')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'chat_messages'
+      },
+      async (payload) => {
+        const row = payload.new;
+        if (!row) return;
+
+        const rowClientId = row.client_id || null;
+        const mapped = await hydrateMessageMedia(mapSupabaseRowToMessage(row));
+        mapped.clientId = rowClientId;
+
+        upsertMessage(mapped);
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'chat_messages'
+      },
+      (payload) => {
+        const row = payload.old;
+        if (!row) return;
+
+        const idx = data.findIndex(msg => String(msg.id) === String(row.id));
+        if (idx !== -1) {
+          data.splice(idx, 1);
+        }
+
+        removeMessageFromUI(row.id);
+
+        if (replyingToId && String(replyingToId) === String(row.id)) {
+          clearReplyPreview();
+        }
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'chat_messages'
+      },
+      async (payload) => {
+        const row = payload.new;
+        if (!row) return;
+
+        // Route through the same authoritative row mapping + reconciliation
+        // path as INSERT/soft-sync, instead of only ever touching `content`
+        // — this keeps every rendering-relevant field (attachment info,
+        // reply target, etc.) consistent rather than just the text, and
+        // gets duplicate-safety/ordering for free from upsertMessage.
+        const mapped = await hydrateMessageMedia(mapSupabaseRowToMessage(row));
+        mapped.clientId = row.client_id || null;
+        // A real Postgres UPDATE event on this table only ever happens
+        // because of an edit — mark it explicitly so the (تم التعديل)
+        // tag keeps showing. There's still no database column for this;
+        // it stays a session-only flag exactly as before.
+        mapped.edited = true;
+
+        upsertMessage(mapped);
+      }
+    )
+    .subscribe((status) => {
+      channelState = String(status || '').toLowerCase();
+      console.log('Realtime status:', status);
+
+      if (
+        status === 'CHANNEL_ERROR' ||
+        status === 'TIMED_OUT' ||
+        status === 'CLOSED'
+      ) {
+        scheduleRealtimeReconnect();
+      }
+    });
+}
+
+async function softSyncMessages() {
+  if (!currentUserId) return;
+
+  // Overlap guard: a slow tick (slow network, slow media hydration) must
+  // not run concurrently with the next 6-second interval firing. We skip
+  // the overlapping tick entirely rather than queueing it — there's no
+  // backlog to catch up on, since the next tick after this one finishes
+  // will just fetch the current latest-50 state again anyway. Reset is in
+  // `finally` so a thrown/failed sync can never leave future ticks
+  // permanently disabled.
+  if (softSyncInFlight) return;
+  softSyncInFlight = true;
+
+  try {
+    // Secondary sort by `id` makes this "latest 50" result deterministic
+    // and reproducible even when several rows share the exact same
+    // created_at — matching the created_at-first/id-tiebreak rule
+    // compareMessages() already applies client-side. This matters here
+    // specifically: without it, which rows land inside vs. just outside
+    // the 50-row cut could vary between identical back-to-back queries
+    // whenever a tie sits at the boundary, which would make the
+    // deletion-scope check below (`oldestFetched`) an unstable boundary —
+    // a message could appear to fall in-scope-but-missing on one tick
+    // (and so get deleted) and out-of-scope on the next, purely from
+    // query nondeterminism rather than any actual server-side change.
+    const { data: rows, error } = await sb
+      .from('chat_messages')
+      .select(`
+        id,
+        user_id,
+        content,
+        sender_name,
+        attachment_path,
+        attachment_type,
+        reply_to_id,
+        created_at,
+        client_id
+      `)
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(50);
+
+    if (error || !rows) return;
+
+    rows.reverse();
+
+    for (const row of rows) {
+      rememberReplyMessage(row);
+    }
+
+    await hydrateMissingReplyTargets(rows);
+
+    const hydratedRows = await Promise.all(
+      rows.map(async (row) => {
+        const mapped = mapSupabaseRowToMessage(row);
+        return await hydrateMessageMedia(mapped);
+      })
+    );
+
+    const serverIds = new Set(hydratedRows.map(msg => String(msg.id)));
+
+    // 1) احذف فقط الرسائل الحقيقية التي لم تعد موجودة على السيرفر
+    //    ولا تلمس الرسائل المؤقتة temp-
+    //
+    // CRITICAL SCOPE NOTE — what this query can and cannot prove: this
+    // fetch only ever returns the newest `limit` (50) rows, now in a
+    // deterministic order. A row's absence from `serverIds` is only
+    // meaningful evidence of deletion for rows unquestionably COVERED by
+    // that window; a locally-held real message that's simply OLDER than
+    // the oldest row this particular batch returned is out of scope for
+    // this comparison — its absence is not evidence it was deleted
+    // server-side, only that this fetch didn't reach that far back.
+    // Treating "not in the latest 50" as "was deleted" would silently wipe
+    // out correctly-paginated older history (loaded via loadOlderMessages)
+    // every six seconds, even though those rows are still very much in the
+    // database. Only messages at-or-newer-than the oldest row this batch
+    // actually returned can be confirmed deleted by it — and with the
+    // deterministic ordering above, that boundary (`oldestFetched`) is now
+    // stable and reproducible instead of shifting between ticks whenever a
+    // tie happened to sit at the cut. Anything genuinely deleted further
+    // back, or any row whose in/out-of-scope status can't be proven safely
+    // right at this boundary, is left alone here and is still caught
+    // correctly by the Realtime DELETE handler, which isn't scoped to any
+    // fetch window at all — we'd rather leave a possibly-deleted message
+    // visible a little longer than delete a valid one incorrectly.
+    //
+    // A batch that comes back completely empty is treated as inconclusive
+    // rather than "the whole table is empty" — assuming the latter and
+    // wiping every locally-held message on the strength of one empty
+    // response would be far riskier than just skipping this tick's deletion
+    // pass (the next successful tick, or a Realtime DELETE, still catches
+    // any real deletion).
+    if (hydratedRows.length > 0) {
+      const oldestFetched = hydratedRows[0];
+      const currentRealMessages = data.filter(msg => !isTempMessageId(msg.id));
+
+      for (const msg of currentRealMessages) {
+        const msgId = String(msg.id);
+        if (serverIds.has(msgId)) continue;
+
+        // Out of the scope this batch covers — leave it alone.
+        if (compareMessages(msg, oldestFetched) < 0) continue;
+
+        const idx = data.findIndex(m => String(m.id) === msgId);
+        if (idx !== -1) {
+          data.splice(idx, 1);
+        }
+
+        removeMessageFromUI(msgId);
+
+        if (replyingToId && String(replyingToId) === msgId) {
+          clearReplyPreview();
+        }
+      }
+    }
+
+    // 2) أضف أو حدّث الرسائل القادمة من السيرفر بدون لمس temp messages
+    //    (upsertMessage handles: matching an optimistic temp message by
+    //    client_id, refreshing an already-confirmed message's content if it
+    //    actually changed — e.g. an edit whose Realtime event was missed —
+    //    or inserting a genuinely new message in chronological order, and
+    //    keeps `data`/the DOM correctly ordered as it does — see
+    //    compareMessages/ensureWrapDomPosition — so no separate blanket
+    //    data.sort() is needed, or safe: sorting the array alone without
+    //    ever touching the DOM would silently let the two drift apart.)
+    for (const serverMsg of hydratedRows) {
+      upsertMessage(serverMsg);
+    }
+  } catch (err) {
+    // A failed/thrown sync must not permanently disable future ticks —
+    // the `finally` below always resets the in-flight guard regardless of
+    // whether this run succeeded, returned early, or threw.
+    console.error('softSyncMessages error:', err);
+  } finally {
+    softSyncInFlight = false;
+  }
+}
+  
+// Returns { loaded, exhausted } so callers (e.g. jumpToMessage's bounded
+// fallback, section 12 of the repair plan) can tell whether paging back
+// found anything new and whether there's any further history left to try.
+async function loadOlderMessages() {
+  if (isLoadingOlder) return { loaded: 0, exhausted: false };
+  if (!oldestMessageTime) return { loaded: 0, exhausted: true };
+
+  isLoadingOlder = true;
+
+  try {
+    const prevScrollHeight = messagesEl.scrollHeight;
+
+    // Pagination boundary: a plain `created_at < oldestMessageTime` cutoff
+    // is ambiguous whenever more than one row shares the exact boundary
+    // timestamp — some of those tied rows may have already been included
+    // in the previous page (cut off arbitrarily by LIMIT among the ties)
+    // while others weren't, and a created_at-only `.lt()` would skip the
+    // remainder entirely (since it excludes ALL rows at that timestamp,
+    // not just the ones already seen). Using `id` as a second component of
+    // a compound (created_at, id) keyset boundary — the same
+    // created_at-first/id-tiebreak rule compareMessages() already applies
+    // client-side — makes the cut deterministic and gap/duplicate-free, as
+    // long as `oldestMessageId` (recorded alongside oldestMessageTime
+    // everywhere it's set) is available. This needs no schema change:
+    // both columns already exist, and `.or()`/`and()` are standard
+    // PostgREST filter composition, not raw SQL.
+    //
+    // Documented limitation: this assumes ordering `id` matches the
+    // client's own tie-break comparison (compareMessageIds — numeric
+    // compare if both parse as numbers, else string compare). That holds
+    // exactly if `id` is a numeric serial/identity primary key (the
+    // ordinary case for a Postgres PK), and holds for the *stability*
+    // requirement (a reproducible, gap/duplicate-free cut) even if `id` is
+    // some other column type, though in that case the tie-break order
+    // itself carries no chronological meaning beyond "stable and
+    // consistent with what the client compares by" — which is exactly
+    // what's needed here, since sub-timestamp chronological order for
+    // genuinely-simultaneous rows isn't recoverable from these two columns
+    // without a schema change (e.g. a monotonic sequence column), which is
+    // out of scope. If `oldestMessageId` isn't available for any reason,
+    // this falls back to the previous created_at-only boundary rather than
+    // failing outright.
+    let query = sb.from('chat_messages').select('*');
+
+    if (oldestMessageId !== null && oldestMessageId !== undefined) {
+      query = query.or(
+        `created_at.lt.${oldestMessageTime},and(created_at.eq.${oldestMessageTime},id.lt.${oldestMessageId})`
+      );
+    } else {
+      query = query.lt('created_at', oldestMessageTime);
+    }
+
+    const { data: rows, error } = await query
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(30);
+
+    if (error || !rows || rows.length === 0) {
+      return { loaded: 0, exhausted: true };
+    }
+
+    rows.reverse();
+
+    for (const row of rows) {
+      rememberReplyMessage(row);
+    }
+
+    await hydrateMissingReplyTargets(rows);
+
+    oldestMessageTime = rows[0].created_at;
+    oldestMessageId = rows[0].id;
+
+    let loadedCount = 0;
+
+    for (const row of rows) {
+      // Cheap pre-check to skip a network hydrate call for rows we already
+      // have; insertMessageInOrder() re-checks existence itself right before
+      // actually mutating `data`/the DOM, which is what keeps this safe even
+      // if something else (soft-sync, Realtime) inserted the same row in the
+      // meantime while this row's own hydrate was in flight.
+      const exists = data.some(msg => String(msg.id) === String(row.id));
+      if (exists) continue;
+
+      const mapped = await hydrateMessageMedia(mapSupabaseRowToMessage(row));
+      insertMessageInOrder(mapped);
+      loadedCount++;
+    }
+
+    const newScrollHeight = messagesEl.scrollHeight;
+    messagesEl.scrollTop += (newScrollHeight - prevScrollHeight);
+
+    return { loaded: loadedCount, exhausted: rows.length < 30 };
+  } catch (err) {
+    // A transient exception (a hydrate call throwing, a DOM insertion
+    // error, etc.) is not proof history is exhausted — it only means this
+    // particular attempt didn't complete. oldestMessageTime/oldestMessageId
+    // are only updated after a successful fetch above, so they're left
+    // untouched here, meaning a later retry resumes from exactly the same
+    // boundary instead of skipping or re-fetching incorrectly.
+    console.error('loadOlderMessages error:', err);
+    return { loaded: 0, exhausted: false };
+  } finally {
+    // Always released, including on the exception path above, so a single
+    // failed attempt can never permanently wedge pagination in a
+    // perpetually-"loading" state.
+    isLoadingOlder = false;
+  }
+}
+
+checkSession().then(async (ok) => {
+  if (!ok) return;
+  await loadMessagesFromSupabase();
+  subscribeToMessages();
+
+  setInterval(softSyncMessages, 6000);
+  
+});
+  
+autoGrowTextarea();
+updateComposerActionButton();
+syncLayoutHeights();
+
+if (isAutoLockDisabled()) {
+  unlockChat();
+} else {
+  lockChat();
+}
+  
+</script>
+
+</body>
+</html>
